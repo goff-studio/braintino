@@ -68,8 +68,7 @@
             "forceStaticLinking": ["RNFBApp", "RNFBAnalytics"]
           }
         }
-      ],
-      "./plugins/withFirebaseAnalyticsPrivacy"
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
