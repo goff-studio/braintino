@@ -1,0 +1,14 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "expo-web",
+      "runtimeExecutable": "/Users/ali/.nvm/versions/node/v25.8.2/bin/node",
+      "runtimeArgs": [
+        "/private/tmp/claude-501/-Users-ali-Desktop-Projects-Braintino/2be08114-0834-4d37-978d-55fed0eb1d39/scratchpad/preview-proxy.js"
+      ],
+      "port": 8081,
+      "autoPort": true
+    }
+  ]
+}

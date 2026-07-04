@@ -1,0 +1,59 @@
+import { getApp } from '@react-native-firebase/app';
+import {
+  getAnalytics,
+  logAppOpen,
+  logEvent,
+  logScreenView,
+  setAnalyticsCollectionEnabled,
+  type FirebaseAnalyticsTypes,
+} from '@react-native-firebase/analytics';
+
+/**
+ * Thin wrapper around Firebase Analytics (modular API).
+ *
+ * Firebase auto-collects the events that power install / retention / DAU / MAU:
+ * `first_open` (install), `session_start`, and `user_engagement`. This module
+ * just makes sure collection is on, logs an app-open, and exposes helpers for
+ * screen and custom events. No GA4 configuration is required for those metrics.
+ */
+
+let analytics: FirebaseAnalyticsTypes.Module | null = null;
+let initialized = false;
+
+function instance(): FirebaseAnalyticsTypes.Module {
+  if (!analytics) analytics = getAnalytics(getApp());
+  return analytics;
+}
+
+export async function initAnalytics(): Promise<void> {
+  if (initialized) return;
+  initialized = true;
+  try {
+    await setAnalyticsCollectionEnabled(instance(), true);
+    await logAppOpen(instance());
+  } catch (e) {
+    // Never let analytics break app startup (e.g. Expo Go / missing native config).
+    if (__DEV__) console.warn('[analytics] init failed', e);
+  }
+}
+
+/** Log a screen view. Names/classes feed GA4 engagement + retention reports. */
+export async function trackScreen(name: string): Promise<void> {
+  try {
+    await logScreenView(instance(), { screen_name: name, screen_class: name });
+  } catch (e) {
+    if (__DEV__) console.warn('[analytics] trackScreen failed', e);
+  }
+}
+
+/** Log a custom event. Event/param names must follow GA4 naming rules. */
+export async function trackEvent(
+  name: string,
+  params?: Record<string, string | number | boolean>,
+): Promise<void> {
+  try {
+    await logEvent(instance(), name, params);
+  } catch (e) {
+    if (__DEV__) console.warn('[analytics] trackEvent failed', e);
+  }
+}

@@ -1,56 +1,61 @@
-# Welcome to your Expo app 👋
+# Braintino 🧠✨
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+**Daily Brain Puzzles — Tiny games. Big focus.**
 
-## Get started
+Braintino is a cozy, premium brain-puzzle game built with React Native and Expo.
+Help **Tino**, a friendly little guide, restore a colorful mind island by playing
+short daily puzzles that challenge your focus, memory, speed, and attention.
 
-1. Install dependencies
+> Braintino is a puzzle game for entertainment and mental engagement. It is not a
+> medical device and does not diagnose, treat, cure, or prevent any disease.
 
-   ```bash
-   npm install
-   ```
+## Features
 
-2. Start the app
+- **Daily Brain Boost** — a themed set of 3 short puzzles every day (4–7 minutes)
+- **Six mini-games** across cognitive-training-inspired domains:
+  - ⚡ **Focus Flash** — visual speed & peripheral attention (Focus Lighthouse)
+  - 🗺 **Route Recall** — spatial navigation & route memory (Island Trails)
+  - 🌸 **Pattern Garden** — working memory & sequences (Memory Garden)
+  - 🎨 **Color Switch** — Stroop-style focus control (Color Dock)
+  - 🔀 **Signal Shift** — attention switching & flexibility (Signal Tower)
+  - 🧺 **Market Memory** — practical memory & shopping lists (Market Path)
+- **Adaptive difficulty** — levels 1–50 per game, always gentle, never shaming
+- **Progress Island** — streaks, stars, XP, rank titles, and skill balance
+- **Cosmetics** — earn coins to dress Tino in hats and scarves (no purchases, no ads)
+- **Accessibility first** — relaxed mode, bigger text, reduced motion, high contrast,
+  large tap targets, and color-plus-icon feedback everywhere
+- **Fully offline** — no accounts, no backend; progress saved locally
 
-   ```bash
-   npx expo start
-   ```
+## Tech stack
 
-In the output, you'll find options to open the app in a
+Expo SDK 57 · React Native 0.86 · TypeScript (strict) · expo-router ·
+react-native-reanimated 4 · Zustand · AsyncStorage · expo-audio · expo-haptics
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Getting started
 
 ```bash
-npm run reset-project
+npm install
+npx expo start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Then press `i` for iOS simulator, `a` for Android, or `w` for web.
 
-### Other setup steps
+## Project structure
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+```
+src/
+  app/            # expo-router screens (tabs, onboarding, daily, play, results)
+  components/     # shared UI (Tino mascot, buttons, cards, stars, rings…)
+  constants/      # colors, typography, spacing, game tuning
+  data/           # mini-game configs, daily plans, cosmetics, ranks
+  game/
+    engines/      # scoring, difficulty, daily training, session flow
+    miniGames/    # the six playable games
+  services/       # storage, audio, haptics, monetization docs (no ads shipped)
+  store/          # Zustand store (progress + settings, persisted)
+  types/          # shared TypeScript types
+  utils/          # seeded random, dates, math
+```
 
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Sounds and app icons are generated programmatically (small WAV chimes, PNG icons) —
+see `assets/sounds` and `assets/images`.

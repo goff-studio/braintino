@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "176993267822",
+    "project_id": "techtory-games",
+    "storage_bucket": "techtory-games.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:176993267822:android:b1fa4d547c77d01446767f",
+        "android_client_info": {
+          "package_name": "com.techtory.braintino"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCVmKp5X7PdEUjseE6VPMoNAVv47aR_rvQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:176993267822:android:4f8b8116e0d64a6946767f",
+        "android_client_info": {
+          "package_name": "io.techtory.coincrush"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCVmKp5X7PdEUjseE6VPMoNAVv47aR_rvQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
