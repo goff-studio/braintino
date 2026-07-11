@@ -23,7 +23,13 @@ export async function initAudio(): Promise<void> {
   if (initialized) return;
   initialized = true;
   try {
-    await setAudioModeAsync({ playsInSilentMode: false, interruptionMode: 'mixWithOthers' });
+    // Foreground-only sound effects. Never keep the audio session alive in the
+    // background — the app declares no background-audio capability.
+    await setAudioModeAsync({
+      playsInSilentMode: false,
+      shouldPlayInBackground: false,
+      interruptionMode: 'mixWithOthers',
+    });
     for (const name of Object.keys(SOURCES) as SoundName[]) {
       const player = createAudioPlayer(SOURCES[name]);
       player.volume = name === 'tap' ? 0.35 : 0.6;

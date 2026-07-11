@@ -2,7 +2,7 @@
 export const RANKS: { level: number; title: string }[] = [
   { level: 1, title: 'Curious Spark' },
   { level: 4, title: 'Focus Friend' },
-  { level: 8, title: 'Memory Mapper' },
+  { level: 8, title: 'Recall Mapper' },
   { level: 13, title: 'Puzzle Pilot' },
   { level: 19, title: 'Bright Thinker' },
   { level: 26, title: 'Mind Explorer' },

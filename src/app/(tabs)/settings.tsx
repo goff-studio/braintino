@@ -163,7 +163,7 @@ export default function SettingsScreen() {
           </AppText>
           <AppText variant="body" color={colors.textSoft}>
             Braintino is a cozy collection of daily brain puzzles. Help Tino restore the mind island
-            while you challenge your focus, memory, speed, and attention.
+            while you challenge your focus, recall, speed, and attention.
           </AppText>
           <AppText variant="caption" color={colors.textSoft}>
             Braintino is a puzzle game for entertainment and mental engagement. It is not a medical

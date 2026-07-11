@@ -39,7 +39,7 @@ export const MINI_GAMES: Record<MiniGameId, MiniGameConfig> = {
     title: 'Pattern Garden',
     shortTitle: 'Pattern',
     skill: 'memory',
-    skillLabel: 'Memory',
+    skillLabel: 'Recall',
     description: 'Repeat the glowing garden sequence.',
     howToPlay:
       'Watch the garden tiles glow one by one. Then tap them in the same order. Later levels may ask for reverse order — the banner will tell you.',
@@ -47,7 +47,7 @@ export const MINI_GAMES: Record<MiniGameId, MiniGameConfig> = {
     icon: 'flower',
     color: palette.successGreen,
     gradient: gradients.memory,
-    location: 'Memory Garden',
+    location: 'Bloom Garden',
     unlockLevel: 1,
   },
   color_switch: {
@@ -84,10 +84,10 @@ export const MINI_GAMES: Record<MiniGameId, MiniGameConfig> = {
   },
   market_memory: {
     id: 'market_memory',
-    title: 'Market Memory',
+    title: 'Market Recall',
     shortTitle: 'Market',
     skill: 'memory',
-    skillLabel: 'Practical Memory',
+    skillLabel: 'Practical Recall',
     description: 'Remember Tino’s little shopping list.',
     howToPlay:
       'Tino shows you a short shopping list. Remember it! Then tap only the right items at the market stall.',

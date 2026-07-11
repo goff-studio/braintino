@@ -53,7 +53,7 @@ export function createFriendlyFeedback(result: MiniGameResult): string {
     const messages: Record<MiniGameId, string> = {
       focus_flash: 'Great focus — you caught every flash!',
       route_recall: 'You remembered the route beautifully.',
-      pattern_garden: 'Nice memory — the garden is glowing.',
+      pattern_garden: 'Nice recall — the garden is glowing.',
       color_switch: 'Steady control. The colors couldn’t trick you.',
       signal_shift: 'Wonderfully flexible sorting!',
       market_memory: 'Tino’s basket is perfectly packed.',

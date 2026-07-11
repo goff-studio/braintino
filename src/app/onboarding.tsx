@@ -86,7 +86,7 @@ export default function OnboardingScreen() {
               Meet Braintino
             </AppText>
             <AppText variant="bodyLarge" color={colors.textSoft} center>
-              Short daily puzzles for focus, memory, and attention — with Tino, your cozy guide to
+              Short daily puzzles for focus, recall, and attention — with Tino, your cozy guide to
               the mind island.
             </AppText>
             <AppButton title="Let’s begin" icon="arrow-forward" onPress={() => setStep(1)} />

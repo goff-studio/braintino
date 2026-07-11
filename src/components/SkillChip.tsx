@@ -9,7 +9,7 @@ import { AppText } from './AppText';
 export const SKILL_META: Record<SkillType, { label: string; icon: keyof typeof Ionicons.glyphMap; color: string }> = {
   speed: { label: 'Speed', icon: 'speedometer', color: '#2F80ED' },
   attention: { label: 'Attention', icon: 'eye', color: '#FF7A59' },
-  memory: { label: 'Memory', icon: 'flower', color: '#42C77B' },
+  memory: { label: 'Recall', icon: 'flower', color: '#42C77B' },
   navigation: { label: 'Navigation', icon: 'map', color: '#35D0BA' },
   flexibility: { label: 'Flexibility', icon: 'git-compare', color: '#8E7CFF' },
   inhibition: { label: 'Focus Control', icon: 'hand-left', color: '#FFB84D' },
