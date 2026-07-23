@@ -10,6 +10,8 @@ import {
   isSessionComplete,
   recordResult,
 } from '@/game/engines/session';
+import { setAnalyticsConsent } from '@/services/analytics/analytics';
+import { AppsFlyerService } from '@/services/attribution/AppsFlyerService';
 import { setSoundEnabled } from '@/services/audio/audio';
 import { setHapticsEnabled } from '@/services/haptics/haptics';
 import * as storage from '@/services/storage/storage';
@@ -45,6 +47,8 @@ type GameStore = {
 
   unlockCosmetic: (id: string) => boolean;
   selectCosmetic: (slot: string, id: string) => void;
+  /** Credit coins from a non-gameplay source (e.g. the rewarded bonus ad). */
+  grantCoins: (amount: number) => void;
   resetAllProgress: () => Promise<void>;
 };
 
@@ -63,9 +67,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   updateSettings: (partial) => {
-    const settings = { ...get().settings, ...partial };
+    const prev = get().settings;
+    const settings = { ...prev, ...partial };
     setSoundEnabled(settings.soundEnabled);
     setHapticsEnabled(settings.hapticsEnabled);
+    // Propagate the consent toggle to Firebase + AppsFlyer without a restart.
+    if (settings.analyticsEnabled !== prev.analyticsEnabled) {
+      setAnalyticsConsent(settings.analyticsEnabled);
+      AppsFlyerService.applyConsent(settings.analyticsEnabled);
+    }
     set({ settings });
     storage.saveSettings(settings);
   },
@@ -133,6 +143,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
     let session = state.session ? recordResult(state.session, result) : null;
     if (session && isSessionComplete(session)) {
       progress.totalSessions += 1;
+      // Attribution engagement signal (no-op when opted out / module absent).
+      AppsFlyerService.logEvent('session_completed', {
+        mode: session.mode,
+        total_sessions: progress.totalSessions,
+      });
       if (session.mode === 'daily' && progress.lastDailyCompletedDate !== today) {
         progress.streak =
           progress.lastDailyCompletedDate === yesterdayKey() ? progress.streak + 1 : 1;
@@ -177,6 +192,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
       ...progress,
       selectedCosmetics: { ...progress.selectedCosmetics, [slot]: id },
     };
+    set({ progress: next });
+    storage.saveProgress(next);
+  },
+
+  grantCoins: (amount) => {
+    if (amount <= 0) return;
+    const next = { ...get().progress, coins: get().progress.coins + amount };
     set({ progress: next });
     storage.saveProgress(next);
   },

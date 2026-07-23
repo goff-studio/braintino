@@ -2,7 +2,7 @@
   "expo": {
     "name": "Braintino",
     "slug": "braintino",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "braintino",
@@ -67,11 +67,58 @@
         }
       ],
       [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-1657859223488791~6552732376",
+          "iosAppId": "ca-app-pub-1657859223488791~8428654896",
+          "userTrackingUsageDescription": "Braintino uses this to show ads that are more relevant to you. You can play with non-personalized ads either way.",
+          "skAdNetworkItems": [
+            "cstr6suwn9.skadnetwork",
+            "4fzdc2evr5.skadnetwork",
+            "2fnua5tdw4.skadnetwork",
+            "ydx93a7ass.skadnetwork",
+            "p78axxw29g.skadnetwork",
+            "v72qych5uu.skadnetwork",
+            "ludvb6z3bs.skadnetwork",
+            "cp8zw746q7.skadnetwork",
+            "3sh42y64q3.skadnetwork",
+            "c6k4g5qg8m.skadnetwork",
+            "s39g8k73mm.skadnetwork",
+            "3qy4746246.skadnetwork",
+            "hs6bdukanm.skadnetwork",
+            "mlmmfzh3r3.skadnetwork",
+            "v4nxqhlyqp.skadnetwork",
+            "wzmmz9fp6w.skadnetwork",
+            "su67r6k2v3.skadnetwork",
+            "yclnxrl5pm.skadnetwork",
+            "f38h382jlk.skadnetwork",
+            "ejvt5qm6ak.skadnetwork",
+            "5lm9lj6jb7.skadnetwork",
+            "ppxm28t8ap.skadnetwork",
+            "zq492l623r.skadnetwork",
+            "3rd42ekr43.skadnetwork",
+            "4468km3ulz.skadnetwork"
+          ],
+          "delayAppMeasurementInit": true
+        }
+      ],
+      [
+        "react-native-appsflyer",
+        {
+          "shouldUseStrictMode": false,
+          "shouldUsePurchaseConnector": false,
+          "preferAppsFlyerBackupRules": false
+        }
+      ],
+      [
         "expo-build-properties",
         {
           "ios": {
             "useFrameworks": "static",
-            "forceStaticLinking": ["RNFBApp", "RNFBAnalytics"]
+            "forceStaticLinking": [
+              "RNFBApp",
+              "RNFBAnalytics"
+            ]
           }
         }
       ]

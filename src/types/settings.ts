@@ -9,6 +9,13 @@ export type PlayerSettings = {
   biggerText: boolean;
   playStyle: PlayStyle;
   onboardingDone: boolean;
+  /**
+   * "Analytics & personalized content" consent. Gates Firebase Analytics and
+   * AppsFlyer attribution together (ad PERSONALIZATION is governed separately
+   * by iOS ATT + the UMP/GDPR consent form in AdService). Default on; the
+   * player can opt out any time in Settings.
+   */
+  analyticsEnabled: boolean;
 };
 
 export const defaultSettings: PlayerSettings = {
@@ -20,4 +27,5 @@ export const defaultSettings: PlayerSettings = {
   biggerText: false,
   playStyle: 'balanced',
   onboardingDone: false,
+  analyticsEnabled: true,
 };

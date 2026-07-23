@@ -7,6 +7,7 @@ import { AnimatedNumber } from '@/components/AnimatedNumber';
 import { AppButton } from '@/components/AppButton';
 import { AppCard } from '@/components/AppCard';
 import { AppText } from '@/components/AppText';
+import { RewardedBonusCard } from '@/components/RewardedBonusCard';
 import { ScreenBackground } from '@/components/ScreenBackground';
 import { SkillChip } from '@/components/SkillChip';
 import { StarRating } from '@/components/StarRating';
@@ -19,6 +20,7 @@ import { isSessionComplete, sessionTotals } from '@/game/engines/session';
 import { useTheme } from '@/hooks/useTheme';
 import { playSound } from '@/services/audio/audio';
 import { completionHaptic } from '@/services/haptics/haptics';
+import { AdService } from '@/services/monetization/AdService';
 import { useGameStore } from '@/store/useGameStore';
 import type { SkillType } from '@/types/game';
 
@@ -59,7 +61,17 @@ export default function ResultsScreen() {
   const config = MINI_GAMES[result.miniGameId];
   const skills = Object.keys(result.skillScores) as SkillType[];
 
-  const goHome = () => {
+  const goHome = async () => {
+    // Interstitial only when a session was COMPLETED (never mid-session, never
+    // during onboarding/first session, max one per day — AdService enforces the
+    // caps). Resolves immediately when skipped, so navigation is never blocked.
+    if (sessionDone && session) {
+      await AdService.maybeShowInterstitialAfterSession({
+        placement: session.mode === 'daily' ? 'after_daily_session' : 'after_practice_session',
+        totalSessions: progress.totalSessions,
+        dateKey: session.dateKey,
+      });
+    }
     abandonSession();
     router.replace('/(tabs)');
   };
@@ -144,6 +156,8 @@ export default function ResultsScreen() {
             </AppCard>
           </View>
         )}
+
+        {dailyComplete && <RewardedBonusCard />}
 
         <View style={{ gap: spacing.md }}>
           {nextGameId ? (

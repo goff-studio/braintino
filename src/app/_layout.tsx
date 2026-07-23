@@ -11,7 +11,9 @@ import { StatusBar } from 'expo-status-bar';
 import React, { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { initAnalytics, trackScreen } from '@/services/analytics/analytics';
+import { AppsFlyerService } from '@/services/attribution/AppsFlyerService';
 import { initAudio } from '@/services/audio/audio';
+import { AdService } from '@/services/monetization/AdService';
 import { useGameStore } from '@/store/useGameStore';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -27,9 +29,21 @@ export default function RootLayout() {
   const pathname = usePathname();
 
   useEffect(() => {
-    useGameStore.getState().hydrate();
     initAudio();
-    initAnalytics();
+    // Consent-aware boot: hydrate settings first so the stored "Analytics &
+    // personalized content" choice gates Firebase and AppsFlyer from the very
+    // first event. AdService.initialize() runs the single iOS ATT prompt at app
+    // start (plus UMP/GDPR when required) before the ad SDK initializes;
+    // AppsFlyer's initSdk waits for that ATT decision internally.
+    useGameStore
+      .getState()
+      .hydrate()
+      .then(() => {
+        const { analyticsEnabled } = useGameStore.getState().settings;
+        initAnalytics(analyticsEnabled);
+        AppsFlyerService.initialize(analyticsEnabled);
+        AdService.initialize();
+      });
   }, []);
 
   useEffect(() => {

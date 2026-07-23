@@ -25,15 +25,27 @@ function instance(): FirebaseAnalyticsTypes.Module {
   return analytics;
 }
 
-export async function initAnalytics(): Promise<void> {
+export async function initAnalytics(enabled: boolean = true): Promise<void> {
   if (initialized) return;
   initialized = true;
   try {
-    await setAnalyticsCollectionEnabled(instance(), true);
-    await logAppOpen(instance());
+    await setAnalyticsCollectionEnabled(instance(), enabled);
+    if (enabled) await logAppOpen(instance());
   } catch (e) {
     // Never let analytics break app startup (e.g. Expo Go / missing native config).
     if (__DEV__) console.warn('[analytics] init failed', e);
+  }
+}
+
+/**
+ * Re-apply the "Analytics & personalized content" consent toggle at runtime.
+ * Collection off means Firebase drops all subsequent events on-device.
+ */
+export async function setAnalyticsConsent(enabled: boolean): Promise<void> {
+  try {
+    await setAnalyticsCollectionEnabled(instance(), enabled);
+  } catch (e) {
+    if (__DEV__) console.warn('[analytics] consent update failed', e);
   }
 }
 

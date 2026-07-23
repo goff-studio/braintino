@@ -10,6 +10,7 @@ import { gradients } from '@/constants/colors';
 import { radius, spacing } from '@/constants/spacing';
 import { useTheme } from '@/hooks/useTheme';
 import { tapHaptic } from '@/services/haptics/haptics';
+import { AdService } from '@/services/monetization/AdService';
 import { useGameStore } from '@/store/useGameStore';
 import type { PlayStyle } from '@/types/settings';
 
@@ -131,6 +132,26 @@ export default function SettingsScreen() {
               );
             })}
           </View>
+        </AppCard>
+
+        <AppCard style={{ gap: spacing.xs }}>
+          <AppText variant="bodyLarge" weight="extraBold" style={{ marginBottom: spacing.xs }}>
+            Privacy
+          </AppText>
+          <ToggleRow
+            label="Analytics & personalized content"
+            description="Helps us improve Braintino. Ads stay either way, just less relevant when off."
+            icon="shield-checkmark"
+            value={settings.analyticsEnabled}
+            onValueChange={(v) => updateSettings({ analyticsEnabled: v })}
+          />
+          {AdService.isPrivacyOptionsRequired() && (
+            <AppButton
+              title="Manage ad privacy"
+              variant="ghost"
+              onPress={() => AdService.showPrivacyOptions()}
+            />
+          )}
         </AppCard>
 
         <AppCard style={{ gap: spacing.md }}>
