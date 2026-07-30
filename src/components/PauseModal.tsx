@@ -4,7 +4,7 @@ import { radius, spacing } from '@/constants/spacing';
 import { useTheme } from '@/hooks/useTheme';
 import { AppButton } from './AppButton';
 import { AppText } from './AppText';
-import { TinoMascot } from './TinoMascot';
+import { Reveal } from './Reveal';
 
 type Props = {
   visible: boolean;
@@ -20,7 +20,7 @@ export function PauseModal({ visible, onResume, onRestart, onExit }: Props) {
       <View
         style={{
           flex: 1,
-          backgroundColor: 'rgba(16,42,67,0.55)',
+          backgroundColor: colors.overlay,
           alignItems: 'center',
           justifyContent: 'center',
           padding: spacing.xl,
@@ -37,18 +37,21 @@ export function PauseModal({ visible, onResume, onRestart, onExit }: Props) {
             gap: spacing.md,
           }}
         >
-          <TinoMascot size={84} mood="calm" />
-          <AppText variant="title" center>
-            Taking a breath
-          </AppText>
-          <AppText variant="body" color={colors.textSoft} center>
-            The puzzle will wait for you.
-          </AppText>
-          <View style={{ alignSelf: 'stretch', gap: spacing.md, marginTop: spacing.sm }}>
+          <Reveal index={0}>
+            <AppText variant="title" center>
+              Paused
+            </AppText>
+          </Reveal>
+          <Reveal index={1}>
+            <AppText variant="body" color={colors.textSoft} center>
+              Your progress is saved.
+            </AppText>
+          </Reveal>
+          <Reveal index={2} style={{ alignSelf: 'stretch', gap: spacing.md, marginTop: spacing.sm }}>
             <AppButton title="Resume" icon="play" onPress={onResume} />
             <AppButton title="Restart" icon="refresh" variant="secondary" onPress={onRestart} />
-            <AppButton title="Exit" icon="home" variant="ghost" onPress={onExit} />
-          </View>
+            <AppButton title="End session" variant="ghost" onPress={onExit} />
+          </Reveal>
         </View>
       </View>
     </Modal>

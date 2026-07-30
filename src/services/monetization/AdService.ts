@@ -255,7 +255,7 @@ class AdServiceImpl {
     });
   }
 
-  // ── Rewarded (cosmetic_reward: bonus coins) ──────────────────────────────
+  // ── Rewarded (cosmetic_reward placement: bonus XP) ───────────────────────
 
   /**
    * Whether tapping the rewarded bonus button can succeed right now. True when

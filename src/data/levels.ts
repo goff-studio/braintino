@@ -1,12 +1,12 @@
-/** Global player rank titles, unlocked by global level. */
+/** Practice-level titles, unlocked by global level. */
 export const RANKS: { level: number; title: string }[] = [
-  { level: 1, title: 'Curious Spark' },
-  { level: 4, title: 'Focus Friend' },
-  { level: 8, title: 'Recall Mapper' },
-  { level: 13, title: 'Puzzle Pilot' },
-  { level: 19, title: 'Bright Thinker' },
-  { level: 26, title: 'Mind Explorer' },
-  { level: 34, title: 'Tino’s Champion' },
+  { level: 1, title: 'Foundation' },
+  { level: 4, title: 'Developing' },
+  { level: 8, title: 'Established' },
+  { level: 13, title: 'Consistent' },
+  { level: 19, title: 'Proficient' },
+  { level: 26, title: 'Advanced' },
+  { level: 34, title: 'Elite' },
 ];
 
 /** XP needed to go from `level` to `level + 1`. */

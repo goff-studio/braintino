@@ -28,23 +28,25 @@ import {
 
 type GameObject = { name: string; icon: keyof typeof Ionicons.glyphMap; color: string };
 
+// Abstract cues in tints bright enough for the dark focus surface.
 const OBJECTS: GameObject[] = [
-  { name: 'Star', icon: 'star', color: '#FFD166' },
-  { name: 'Heart', icon: 'heart', color: '#FF6B6B' },
-  { name: 'Leaf', icon: 'leaf', color: '#42C77B' },
-  { name: 'Moon', icon: 'moon', color: '#B3A6FF' },
-  { name: 'Fish', icon: 'fish', color: '#6FB1FF' },
-  { name: 'Sun', icon: 'sunny', color: '#FFB84D' },
-  { name: 'Drop', icon: 'water', color: '#35D0BA' },
-  { name: 'Flower', icon: 'flower', color: '#FF7A59' },
+  { name: 'Bolt', icon: 'flash', color: '#9AF23D' },
+  { name: 'Cube', icon: 'cube', color: '#5EA8DC' },
+  { name: 'Key', icon: 'key', color: '#F5B942' },
+  { name: 'Disc', icon: 'disc', color: '#C5CEDD' },
+  { name: 'Grid', icon: 'grid', color: '#7FB069' },
+  { name: 'Star', icon: 'star', color: '#E8A87C' },
+  { name: 'Triangle', icon: 'triangle', color: '#5EA8DC' },
+  { name: 'Square', icon: 'square', color: '#C5CEDD' },
 ];
 
 const COLOR_CHOICES = [
-  { name: 'Yellow', color: '#FFD166' },
-  { name: 'Coral', color: '#FF7A59' },
-  { name: 'Mint', color: '#35D0BA' },
-  { name: 'Purple', color: '#B3A6FF' },
-  { name: 'Blue', color: '#6FB1FF' },
+  { name: 'Blue', color: '#5EA8DC' },
+  { name: 'Lime', color: '#9AF23D' },
+  { name: 'Amber', color: '#F5B942' },
+  { name: 'Slate', color: '#C5CEDD' },
+  { name: 'Green', color: '#7FB069' },
+  { name: 'Coral', color: '#F0876C' },
 ];
 
 type Round = {
@@ -79,9 +81,17 @@ function buildRound(seed: string, roundIndex: number, difficulty: MiniGameProps[
     ...sample(rng, otherPositions.filter((p) => !distractorPositions.includes(p)), Math.min(difficulty.choices, 5)),
   ]);
 
-  const rule = difficulty.focusRule ?? 'center';
+  const rule = difficulty.focusRule ?? 'location';
+  // 'dual' asks two questions per round; at level 12+ the pair itself varies
+  // round to round, so the player can't settle into one recall strategy.
   const questions: Round['questions'] =
-    rule === 'center' ? ['center'] : rule === 'location' ? ['location'] : rule === 'colorMatch' ? ['color'] : ['center', 'location'];
+    rule === 'location'
+      ? ['location']
+      : rule === 'colorMatch'
+        ? ['color']
+        : difficulty.level >= 12
+          ? (sample(rng, ['center', 'location', 'color'] as Round['questions'], 2) as Round['questions'])
+          : ['center', 'location'];
 
   return { center, centerColor, sparklePos, distractorPositions, objectChoices, colorChoices, positionChoices, questions };
 }
@@ -187,14 +197,14 @@ export function FocusFlash({ difficulty, paused, seed, onComplete, onRoundChange
 
   const prompt =
     phase === 'ready'
-      ? 'Watch the lighthouse…'
+      ? 'Get ready…'
       : phase === 'flash'
         ? 'Keep your eyes on the center'
         : question === 'center'
           ? 'What appeared in the center?'
           : question === 'location'
-            ? 'Where did the sparkle appear?'
-            : 'What color was the center object?';
+            ? 'Where did the signal appear?'
+            : 'What color was the center cue?';
 
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'space-evenly', paddingHorizontal: spacing.lg }}>
@@ -270,7 +280,7 @@ export function FocusFlash({ difficulty, paused, seed, onComplete, onRoundChange
             >
               {showSparkle && isSparkle && (
                 <Animated.View entering={reducedMotion ? undefined : FadeIn.duration(100)}>
-                  <Ionicons name="sparkles" size={26} color="#FFD166" />
+                  <Ionicons name="ellipse" size={20} color="#9AF23D" />
                 </Animated.View>
               )}
               {showSparkle && isDistractor && (
@@ -294,7 +304,7 @@ export function FocusFlash({ difficulty, paused, seed, onComplete, onRoundChange
           <Ionicons
             name={lastAnswerCorrect ? 'checkmark-circle' : 'close-circle'}
             size={44}
-            color={lastAnswerCorrect ? '#42C77B' : '#FFB84D'}
+            color={lastAnswerCorrect ? '#7FB069' : '#F5B942'}
           />
         )}
 
@@ -356,7 +366,7 @@ export function FocusFlash({ difficulty, paused, seed, onComplete, onRoundChange
 
         {answeringLocation && (
           <AppText variant="body" color="rgba(255,255,255,0.7)" center>
-            Tap the glowing spot on the circle
+            Tap the highlighted position
           </AppText>
         )}
       </View>

@@ -44,7 +44,7 @@ export function GameHeader({ title, round, totalRounds, score, onPause, onDark }
           width: tapTarget.min,
           height: tapTarget.min,
           borderRadius: tapTarget.min / 2,
-          backgroundColor: onDark ? 'rgba(255,255,255,0.16)' : 'rgba(16,42,67,0.06)',
+          backgroundColor: onDark ? 'rgba(255,255,255,0.16)' : colors.trackFaint,
           alignItems: 'center',
           justifyContent: 'center',
         }}
@@ -52,7 +52,7 @@ export function GameHeader({ title, round, totalRounds, score, onPause, onDark }
         <Ionicons name="pause" size={22} color={textColor} />
       </Pressable>
       <View style={{ flex: 1 }}>
-        <AppText variant="gameLabel" weight="extraBold" color={textColor}>
+        <AppText variant="gameLabel" weight="bold" color={textColor}>
           {title}
         </AppText>
         <View style={{ flexDirection: 'row', gap: spacing.xs, marginTop: 4, alignItems: 'center' }}>
@@ -64,7 +64,10 @@ export function GameHeader({ title, round, totalRounds, score, onPause, onDark }
                 height: 8,
                 borderRadius: 4,
                 backgroundColor:
-                  i < round ? colors.accent : onDark ? 'rgba(255,255,255,0.3)' : 'rgba(16,42,67,0.15)',
+                  i < round ? colors.accent : onDark ? 'rgba(255,255,255,0.25)' : colors.trackFaint,
+                // Lime needs a hairline outline to hold up on light surfaces.
+                borderWidth: i < round && !onDark ? 1 : 0,
+                borderColor: 'rgba(11,31,53,0.25)',
               }}
             />
           ))}

@@ -19,20 +19,23 @@ import { RuleBanner } from './RuleBanner';
 import {
   usePausableTimeout,
   usePhase,
+  useReactionClock,
   useRoundTracker,
   type MiniGameProps,
 } from './shared';
 
+// Abstract geometric tiles in a single accent — position and symbol carry the
+// sequence, not color.
 const TILES: { icon: keyof typeof Ionicons.glyphMap; color: string }[] = [
-  { icon: 'leaf', color: '#42C77B' },
-  { icon: 'star', color: '#FFB84D' },
-  { icon: 'flower', color: '#FF7A59' },
-  { icon: 'moon', color: '#8E7CFF' },
-  { icon: 'water', color: '#35D0BA' },
-  { icon: 'rose', color: '#F06292' },
-  { icon: 'sunny', color: '#FFD166' },
-  { icon: 'sparkles', color: '#6FB1FF' },
-  { icon: 'planet', color: '#B3A6FF' },
+  { icon: 'square', color: '#3E7C17' },
+  { icon: 'triangle', color: '#3E7C17' },
+  { icon: 'ellipse', color: '#3E7C17' },
+  { icon: 'star', color: '#3E7C17' },
+  { icon: 'cube', color: '#3E7C17' },
+  { icon: 'prism', color: '#3E7C17' },
+  { icon: 'disc', color: '#3E7C17' },
+  { icon: 'flash', color: '#3E7C17' },
+  { icon: 'grid', color: '#3E7C17' },
 ];
 
 function GardenTile({
@@ -76,13 +79,13 @@ function GardenTile({
     ? tile.color
     : flash === 'correct'
       ? `${tile.color}66`
-      : 'rgba(255,255,255,0.85)';
+      : '#FFFFFF';
 
   return (
     <Animated.View style={style}>
       <Pressable
         disabled={disabled}
-        accessibilityLabel={`Garden tile ${tile.icon}`}
+        accessibilityLabel={`Sequence tile ${tile.icon}`}
         onPress={onPress}
         style={{
           width: size,
@@ -111,6 +114,7 @@ export function PatternGarden({ difficulty, paused, seed, onComplete, onRoundCha
   const { colors } = useTheme();
   const totalRounds = gameConfig.roundsPerSession.pattern_garden;
   const tracker = useRoundTracker();
+  const clock = useReactionClock(paused);
 
   const tileCount = difficulty.choices;
   const columns = 3;
@@ -166,6 +170,7 @@ export function PatternGarden({ difficulty, paused, seed, onComplete, onRoundCha
         setLitIndex(-1);
         setInputPos(0);
         setRoundMistakes(0);
+        clock.start();
         setPhase('repeat');
       }
     },
@@ -191,7 +196,8 @@ export function PatternGarden({ difficulty, paused, seed, onComplete, onRoundCha
   const handleTap = (tileIndex: number) => {
     if (phase !== 'repeat') return;
     const correct = tileIndex === expected[inputPos];
-    tracker.record(correct);
+    tracker.record(correct, clock.elapsed());
+    clock.start();
     setFlashTile({ index: tileIndex, kind: correct ? 'correct' : 'wrong' });
     if (correct) {
       playSound('correct');
@@ -224,17 +230,16 @@ export function PatternGarden({ difficulty, paused, seed, onComplete, onRoundCha
     phase === 'watch' || phase === 'intro'
       ? reverse
         ? 'Watch closely…'
-        : 'Watch the garden glow'
+        : 'Watch the sequence'
       : reverse
-        ? 'Repeat it BACKWARDS'
+        ? 'Repeat it in REVERSE'
         : 'Your turn — repeat it';
 
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'space-evenly', paddingHorizontal: spacing.lg }}>
       <RuleBanner
         text={banner}
-        icon={phase === 'repeat' ? (reverse ? 'swap-horizontal' : 'hand-left') : 'eye'}
-        color={reverse && phase === 'repeat' ? colors.secondary : colors.accent}
+        icon={phase === 'repeat' ? (reverse ? 'swap-horizontal' : 'hand-left-outline') : 'eye-outline'}
         changeToken={phase === 'repeat' ? 1 : 0}
       />
 
@@ -270,7 +275,7 @@ export function PatternGarden({ difficulty, paused, seed, onComplete, onRoundCha
                   width: 12,
                   height: 12,
                   borderRadius: 6,
-                  backgroundColor: i < inputPos ? colors.success : 'rgba(16,42,67,0.18)',
+                  backgroundColor: i < inputPos ? colors.success : colors.trackFaint,
                 }}
               />
             ))}
@@ -278,7 +283,7 @@ export function PatternGarden({ difficulty, paused, seed, onComplete, onRoundCha
         )}
         {phase === 'roundDone' && (
           <AppText variant="gameLabel" color={colors.success} center>
-            Sequence complete!
+            Sequence complete.
           </AppText>
         )}
       </View>

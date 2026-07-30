@@ -12,10 +12,10 @@ import { RuleBanner } from './RuleBanner';
 import { usePausableTimeout, usePhase, useReactionClock, useRoundTracker, type MiniGameProps } from './shared';
 
 const INK_COLORS = [
-  { name: 'BLUE', color: '#2F80ED' },
-  { name: 'CORAL', color: '#FF7A59' },
-  { name: 'MINT', color: '#1FA98F' },
-  { name: 'PURPLE', color: '#8E7CFF' },
+  { name: 'BLUE', color: '#0067B1' },
+  { name: 'GREEN', color: '#3E7C17' },
+  { name: 'AMBER', color: '#B26A00' },
+  { name: 'CORAL', color: '#E85D4A' },
 ];
 
 type Rule = 'color' | 'word';
@@ -28,7 +28,7 @@ export function ColorSwitch({ difficulty, paused, seed, onComplete, onRoundChang
 
   const choiceSet = INK_COLORS.slice(0, Math.max(2, difficulty.choices));
   const switchEvery = difficulty.ruleSwitchFrequency ?? 0;
-  const conflictsOn = difficulty.level >= 10;
+  const conflictRate = difficulty.conflictRate ?? 0;
 
   const [roundIndex, setRoundIndex] = useState(0);
   const { phase, setPhase, token } = usePhase<'show' | 'feedback'>('show');
@@ -44,14 +44,16 @@ export function ColorSwitch({ difficulty, paused, seed, onComplete, onRoundChang
   const round = useMemo(() => {
     const rng = rngFromString(`${seed}-cs-${roundIndex}`);
     const word = choiceSet[Math.floor(rng() * choiceSet.length)];
+    // Always draw the conflict roll so the sequence stays seed-deterministic.
+    const conflictRoll = rng();
     let ink = word;
-    if (conflictsOn && rng() < 0.65) {
+    if (conflictRoll < conflictRate) {
       const others = choiceSet.filter((c) => c.name !== word.name);
       ink = others[Math.floor(rng() * others.length)];
     }
     return { word, ink };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [seed, roundIndex, conflictsOn, difficulty.choices]);
+  }, [seed, roundIndex, conflictRate, difficulty.choices]);
 
   useEffect(() => {
     onRoundChange?.(roundIndex + 1);
@@ -101,9 +103,8 @@ export function ColorSwitch({ difficulty, paused, seed, onComplete, onRoundChang
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'space-evenly', paddingHorizontal: spacing.lg }}>
       <RuleBanner
-        text={rule === 'color' ? 'Tap the COLOR you see' : 'Tap the WORD you read'}
-        icon={rule === 'color' ? 'color-fill' : 'text'}
-        color={rule === 'color' ? '#FF7A59' : '#2F80ED'}
+        text={rule === 'color' ? 'Respond to the COLOR you see' : 'Respond to the WORD you read'}
+        icon={rule === 'color' ? 'color-fill-outline' : 'text-outline'}
         changeToken={ruleChangeToken}
       />
 
@@ -118,18 +119,18 @@ export function ColorSwitch({ difficulty, paused, seed, onComplete, onRoundChang
           borderColor: colors.border,
           alignItems: 'center',
           justifyContent: 'center',
-          shadowColor: '#102A43',
-          shadowOpacity: 0.12,
+          shadowColor: colors.shadow,
+          shadowOpacity: 0.08,
           shadowRadius: 16,
           shadowOffset: { width: 0, height: 8 },
-          elevation: 5,
+          elevation: 4,
         }}
       >
         {phase === 'feedback' ? (
           <Ionicons
             name={lastCorrect ? 'checkmark-circle' : 'close-circle'}
             size={56}
-            color={lastCorrect ? colors.success : colors.warning}
+            color={lastCorrect ? colors.success : colors.error}
           />
         ) : (
           <AppText variant="display" weight="extraBold" color={round.ink.color}>
@@ -150,7 +151,9 @@ export function ColorSwitch({ difficulty, paused, seed, onComplete, onRoundChang
               minWidth: 96,
               minHeight: tapTarget.game + 12,
               borderRadius: radius.button,
-              backgroundColor: pressed ? `${c.color}DD` : c.color,
+              backgroundColor: pressed ? colors.cardSoft : colors.card,
+              borderWidth: 2,
+              borderColor: c.color,
               alignItems: 'center',
               justifyContent: 'center',
               gap: 4,
@@ -158,8 +161,8 @@ export function ColorSwitch({ difficulty, paused, seed, onComplete, onRoundChang
               paddingVertical: spacing.sm,
             })}
           >
-            <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: '#FFFFFF' }} />
-            <AppText variant="body" weight="extraBold" color="#FFFFFF">
+            <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: c.color }} />
+            <AppText variant="body" weight="bold" color={colors.text}>
               {c.name}
             </AppText>
           </Pressable>

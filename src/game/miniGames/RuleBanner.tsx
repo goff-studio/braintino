@@ -15,14 +15,13 @@ import { AppText } from '@/components/AppText';
 type Props = {
   text: string;
   icon?: keyof typeof Ionicons.glyphMap;
-  color: string;
   /** Bump to replay the "rule changed" attention animation. */
   changeToken?: number;
 };
 
-/** Large, clear rule banner used by rule-switching games. */
-export function RuleBanner({ text, icon = 'megaphone', color, changeToken = 0 }: Props) {
-  const { reducedMotion } = useTheme();
+/** Clear, neutral rule banner used by rule-switching games. */
+export function RuleBanner({ text, icon = 'information-circle-outline', changeToken = 0 }: Props) {
+  const { colors, reducedMotion } = useTheme();
   const scale = useSharedValue(1);
 
   useEffect(() => {
@@ -44,7 +43,7 @@ export function RuleBanner({ text, icon = 'megaphone', color, changeToken = 0 }:
           flexDirection: 'row',
           alignItems: 'center',
           gap: spacing.sm,
-          backgroundColor: color,
+          backgroundColor: colors.secondary,
           borderRadius: radius.button,
           paddingHorizontal: spacing.xl,
           paddingVertical: spacing.md,
@@ -55,7 +54,7 @@ export function RuleBanner({ text, icon = 'megaphone', color, changeToken = 0 }:
       accessibilityLabel={`Current rule: ${text}`}
     >
       <Ionicons name={icon} size={20} color="#FFFFFF" />
-      <AppText variant="gameLabel" weight="extraBold" color="#FFFFFF">
+      <AppText variant="gameLabel" weight="bold" color="#FFFFFF">
         {text}
       </AppText>
     </Animated.View>

@@ -33,9 +33,23 @@ export function isSessionComplete(session: SessionState): boolean {
   return session.index >= session.plan.length - 1 && session.results.length >= session.plan.length;
 }
 
-export function sessionTotals(session: SessionState): { xp: number; coins: number; stars: number } {
-  return session.results.reduce(
-    (acc, r) => ({ xp: acc.xp + r.xp, coins: acc.coins + r.coins, stars: acc.stars + r.stars }),
-    { xp: 0, coins: 0, stars: 0 }
+export function sessionTotals(session: SessionState): {
+  xp: number;
+  avgAccuracy: number;
+  avgPracticeScore: number;
+} {
+  const count = session.results.length;
+  const sums = session.results.reduce(
+    (acc, r) => ({
+      xp: acc.xp + r.xp,
+      accuracy: acc.accuracy + r.accuracy,
+      practiceScore: acc.practiceScore + r.practiceScore,
+    }),
+    { xp: 0, accuracy: 0, practiceScore: 0 }
   );
+  return {
+    xp: sums.xp,
+    avgAccuracy: count > 0 ? sums.accuracy / count : 0,
+    avgPracticeScore: count > 0 ? Math.round(sums.practiceScore / count) : 0,
+  };
 }

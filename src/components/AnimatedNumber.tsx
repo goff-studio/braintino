@@ -7,12 +7,13 @@ type Props = {
   value: number;
   durationMs?: number;
   prefix?: string;
+  suffix?: string;
   variant?: keyof typeof fontSizes;
   color?: string;
 };
 
 /** Counts up to `value` (instant when reduced motion is on). */
-export function AnimatedNumber({ value, durationMs = 900, prefix = '', variant = 'display', color }: Props) {
+export function AnimatedNumber({ value, durationMs = 900, prefix = '', suffix = '', variant = 'display', color }: Props) {
   const { reducedMotion } = useTheme();
   const [shown, setShown] = useState(reducedMotion ? value : 0);
   const raf = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -38,6 +39,7 @@ export function AnimatedNumber({ value, durationMs = 900, prefix = '', variant =
     <AppText variant={variant} color={color}>
       {prefix}
       {shown}
+      {suffix}
     </AppText>
   );
 }

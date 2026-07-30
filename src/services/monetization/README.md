@@ -16,7 +16,8 @@ production EAS build (`EXPO_PUBLIC_ADS_ENV=production` in eas.json).
   (persisted under `braintino.ads.lastInterstitialDate`).
 - `cosmetic_reward` — opt-in rewarded ad
   ([RewardedBonusCard](../../components/RewardedBonusCard.tsx)) on the
-  daily-complete results screen; grants `REWARDED_BONUS_COINS` for cosmetics.
+  daily-complete results screen; grants `REWARDED_BONUS_XP`. (The placement key
+  predates the redesign and is kept for ad-reporting continuity.)
 
 ## Consent
 

@@ -1,16 +1,19 @@
 export const palette = {
-  deepNavy: '#102A43',
-  brainBlue: '#2F80ED',
-  aquaMint: '#35D0BA',
-  softPurple: '#8E7CFF',
-  sunriseCoral: '#FF7A59',
-  warmYellow: '#FFD166',
-  softSand: '#F9E7C8',
-  mistWhite: '#F7FAFC',
-  lavenderFog: '#E8E7FF',
-  successGreen: '#42C77B',
-  warningAmber: '#FFB84D',
-  errorCoral: '#FF6B6B',
+  deepNavy: '#0B1F35',
+  brandBlue: '#0067B1',
+  softBlue: '#F4F8FF',
+  appBg: '#F5F7FC',
+  cardWhite: '#FFFFFF',
+  textSecondary: '#4B5563',
+  textMuted: '#7A8492',
+  textDisabled: '#A7B0BC',
+  lime: '#9AF23D',
+  green: '#3E7C17',
+  chipBlue: '#EAF2FF',
+  chipGreen: '#ECFADF',
+  amber: '#F5B942',
+  coral: '#E85D4A',
+  borderLine: '#E1E7F0',
 } as const;
 
 export type ThemeColors = {
@@ -20,64 +23,83 @@ export type ThemeColors = {
   cardSoft: string;
   text: string;
   textSoft: string;
+  textMuted: string;
+  textDisabled: string;
   textOnDark: string;
   textOnDarkSoft: string;
   primary: string;
   secondary: string;
+  /** Performance lime. Fill-only: pair with navy text/border, never use as text color. */
   accent: string;
   success: string;
   warning: string;
   error: string;
   border: string;
   shadow: string;
+  chipBlue: string;
+  chipGreen: string;
+  overlay: string;
+  trackFaint: string;
 };
 
 const baseTheme: ThemeColors = {
-  background: palette.mistWhite,
-  backgroundGradient: ['#EAF4FF', '#F1EEFF', '#FDF4E7'],
-  card: '#FFFFFF',
-  cardSoft: palette.lavenderFog,
+  background: palette.appBg,
+  backgroundGradient: ['#F4F8FF', '#F5F7FC', '#FFFFFF'],
+  card: palette.cardWhite,
+  cardSoft: palette.softBlue,
   text: palette.deepNavy,
-  textSoft: '#5B7288',
+  textSoft: palette.textSecondary,
+  textMuted: palette.textMuted,
+  textDisabled: palette.textDisabled,
   textOnDark: '#FFFFFF',
-  textOnDarkSoft: 'rgba(255,255,255,0.78)',
-  primary: palette.brainBlue,
-  secondary: palette.softPurple,
-  accent: palette.aquaMint,
-  success: palette.successGreen,
-  warning: palette.warningAmber,
-  error: palette.errorCoral,
-  border: 'rgba(16,42,67,0.08)',
+  textOnDarkSoft: 'rgba(255,255,255,0.75)',
+  primary: palette.brandBlue,
+  secondary: palette.deepNavy,
+  accent: palette.lime,
+  success: palette.green,
+  warning: palette.amber,
+  error: palette.coral,
+  border: palette.borderLine,
   shadow: palette.deepNavy,
+  chipBlue: palette.chipBlue,
+  chipGreen: palette.chipGreen,
+  overlay: 'rgba(11,31,53,0.55)',
+  trackFaint: 'rgba(11,31,53,0.08)',
 };
 
 const highContrastTheme: ThemeColors = {
   ...baseTheme,
   background: '#FFFFFF',
-  backgroundGradient: ['#FFFFFF', '#F2F6FA', '#F2F6FA'],
-  text: '#0A1C2E',
-  textSoft: '#33475C',
+  backgroundGradient: ['#FFFFFF', '#FFFFFF', '#FFFFFF'],
+  text: '#081527',
+  textSoft: '#374151',
+  textMuted: '#4B5563',
   textOnDarkSoft: 'rgba(255,255,255,0.92)',
-  primary: '#1B63C4',
-  secondary: '#5F49E6',
-  accent: '#0E9C89',
-  success: '#1F9D58',
-  error: '#E04545',
-  border: 'rgba(10,28,46,0.28)',
+  primary: '#00538F',
+  secondary: '#081527',
+  accent: '#4C8F0E',
+  success: '#2E5F10',
+  error: '#C43F2E',
+  border: 'rgba(11,31,53,0.35)',
+  trackFaint: 'rgba(11,31,53,0.16)',
 };
 
 export function getThemeColors(highContrast: boolean): ThemeColors {
   return highContrast ? highContrastTheme : baseTheme;
 }
 
-/** Gradients used by screen backgrounds around the mind island. */
+/** Screen background gradients. Light screens get near-imperceptible tints;
+ * only the Processing Speed exercise keeps a dark surface. */
 export const gradients = {
-  home: ['#DDEFFF', '#E9E5FF', '#FFF3E0'],
-  daily: ['#D8F6F0', '#E2ECFF', '#F6ECFF'],
-  focus: ['#102A43', '#1C4470', '#2F80ED'],
-  memory: ['#E5F9E9', '#DFF5EF', '#EAF4FF'],
-  color: ['#FFF1E8', '#FFE9F0', '#EFE9FF'],
-  results: ['#FFE9CF', '#FFDDE4', '#EDE7FF'],
-  progress: ['#DFF3FF', '#E6E9FF', '#E8FBF4'],
-  navigation: ['#E0F3FF', '#DDF6EE', '#FDF2DC'],
+  base: ['#F4F8FF', '#F5F7FC', '#FFFFFF'],
+  home: ['#F4F8FF', '#F5F7FC', '#FFFFFF'],
+  daily: ['#F4F8FF', '#F5F7FC', '#FFFFFF'],
+  focus: ['#0B1F35', '#0F2A4A', '#143A66'],
+  memory: ['#F2F8EE', '#F5F9F3', '#FFFFFF'],
+  color: ['#FDF6EC', '#F8F7F2', '#FFFFFF'],
+  results: ['#EAF2FF', '#F5F7FC', '#FFFFFF'],
+  progress: ['#F4F8FF', '#F5F7FC', '#FFFFFF'],
+  navigation: ['#F0F6FC', '#F4F8FF', '#FFFFFF'],
+  /** Premium hero cards only — render 135° via LinearGradient start/end. */
+  hero: ['#0067B1', '#0B1F35'],
 } as const;

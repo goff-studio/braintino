@@ -41,7 +41,7 @@ export function ToggleRow({ label, description, value, onValueChange, icon }: Pr
         </View>
       )}
       <View style={{ flex: 1 }}>
-        <AppText variant="bodyLarge" weight="bold">
+        <AppText variant="bodyLarge" weight="semiBold">
           {label}
         </AppText>
         {description ? (
@@ -57,7 +57,7 @@ export function ToggleRow({ label, description, value, onValueChange, icon }: Pr
           tapHaptic();
           onValueChange(v);
         }}
-        trackColor={{ false: 'rgba(16,42,67,0.15)', true: colors.accent }}
+        trackColor={{ false: colors.trackFaint, true: colors.primary }}
         thumbColor="#FFFFFF"
       />
     </View>

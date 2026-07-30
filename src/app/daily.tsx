@@ -6,19 +6,21 @@ import { Ionicons } from '@expo/vector-icons';
 import { AppButton } from '@/components/AppButton';
 import { AppCard } from '@/components/AppCard';
 import { AppText } from '@/components/AppText';
+import { Reveal } from '@/components/Reveal';
 import { ScreenBackground } from '@/components/ScreenBackground';
 import { SkillChip } from '@/components/SkillChip';
 import { LevelBadge } from '@/components/LevelBadge';
 import { gradients } from '@/constants/colors';
 import { spacing, tapTarget } from '@/constants/spacing';
 import { MINI_GAMES } from '@/data/miniGames';
+import { getStartingLevel } from '@/game/engines/difficulty';
 import { useTheme } from '@/hooks/useTheme';
 import { useGameStore } from '@/store/useGameStore';
 
 export default function DailyTrainingScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { colors } = useTheme();
+  const { colors, settings } = useTheme();
   const session = useGameStore((s) => s.session);
   const progress = useGameStore((s) => s.progress);
   const startDailySession = useGameStore((s) => s.startDailySession);
@@ -35,7 +37,7 @@ export default function DailyTrainingScreen() {
           gap: spacing.lg,
         }}
       >
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+        <Reveal index={0} style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Back"
@@ -44,7 +46,7 @@ export default function DailyTrainingScreen() {
               width: tapTarget.min,
               height: tapTarget.min,
               borderRadius: tapTarget.min / 2,
-              backgroundColor: 'rgba(16,42,67,0.06)',
+              backgroundColor: colors.trackFaint,
               alignItems: 'center',
               justifyContent: 'center',
             }}
@@ -52,20 +54,22 @@ export default function DailyTrainingScreen() {
             <Ionicons name="arrow-back" size={22} color={colors.text} />
           </Pressable>
           <View>
-            <AppText variant="title">Today’s Brain Boost</AppText>
+            <AppText variant="title">Today’s Session</AppText>
             <AppText variant="body" color={colors.textSoft}>
-              3 short puzzles with Tino
+              3 exercises · about 5 minutes
             </AppText>
           </View>
-        </View>
+        </Reveal>
 
-        {/* Path of games */}
+        {/* Session path */}
         <View style={{ gap: spacing.sm }}>
           {(plan ?? []).map((id, index) => {
             const game = MINI_GAMES[id];
-            const level = progress.miniGameProgress[id]?.level ?? 1;
+            const level =
+              progress.miniGameProgress[id]?.level ??
+              getStartingLevel(progress, settings.difficultyMode);
             return (
-              <View key={id} style={{ flexDirection: 'row', alignItems: 'stretch', gap: spacing.md }}>
+              <Reveal key={id} index={index + 1} style={{ flexDirection: 'row', alignItems: 'stretch', gap: spacing.md }}>
                 {/* path indicator */}
                 <View style={{ alignItems: 'center', width: 32 }}>
                   <View
@@ -73,17 +77,17 @@ export default function DailyTrainingScreen() {
                       width: 32,
                       height: 32,
                       borderRadius: 16,
-                      backgroundColor: game.color,
+                      backgroundColor: colors.secondary,
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
                   >
-                    <AppText variant="body" weight="extraBold" color="#FFFFFF">
+                    <AppText variant="body" weight="bold" color="#FFFFFF">
                       {index + 1}
                     </AppText>
                   </View>
                   {index < (plan?.length ?? 0) - 1 && (
-                    <View style={{ flex: 1, width: 3, borderRadius: 2, backgroundColor: 'rgba(16,42,67,0.12)', marginVertical: 4 }} />
+                    <View style={{ flex: 1, width: 3, borderRadius: 2, backgroundColor: colors.trackFaint, marginVertical: 4 }} />
                   )}
                 </View>
                 <AppCard style={{ flex: 1, marginBottom: spacing.sm }}>
@@ -93,7 +97,7 @@ export default function DailyTrainingScreen() {
                         width: 52,
                         height: 52,
                         borderRadius: 18,
-                        backgroundColor: `${game.color}1A`,
+                        backgroundColor: `${game.color}14`,
                         alignItems: 'center',
                         justifyContent: 'center',
                       }}
@@ -101,35 +105,39 @@ export default function DailyTrainingScreen() {
                       <Ionicons name={game.icon as keyof typeof Ionicons.glyphMap} size={28} color={game.color} />
                     </View>
                     <View style={{ flex: 1, gap: 4 }}>
-                      <AppText variant="bodyLarge" weight="extraBold">
+                      <AppText variant="bodyLarge" weight="bold">
                         {game.title}
                       </AppText>
-                      <View style={{ flexDirection: 'row', gap: spacing.sm, alignItems: 'center' }}>
+                      <View style={{ flexDirection: 'row', gap: spacing.sm, alignItems: 'center', flexWrap: 'wrap' }}>
                         <SkillChip skill={game.skill} labelOverride={game.skillLabel} />
-                        <LevelBadge level={level} color={game.color} compact />
+                        <LevelBadge level={level} compact />
+                        <AppText variant="caption" color={colors.textSoft}>
+                          ~{Math.round(game.baseDurationSec / 60 * 10) / 10}m
+                        </AppText>
                       </View>
                     </View>
-                    <AppText variant="caption" color={colors.textSoft}>
-                      ~{Math.round(game.baseDurationSec / 60 * 10) / 10}m
-                    </AppText>
                   </View>
                 </AppCard>
-              </View>
+              </Reveal>
             );
           })}
         </View>
 
-        <AppButton
-          title="Begin Boost"
-          icon="play"
-          onPress={() => {
-            const s = session?.mode === 'daily' && session.results.length === 0 ? session : startDailySession();
-            router.push(`/play/${s.plan[0]}`);
-          }}
-        />
-        <AppText variant="caption" color={colors.textSoft} center>
-          No rush — accuracy matters most.
-        </AppText>
+        <Reveal index={4}>
+          <AppButton
+            title="Begin Session"
+            icon="play"
+            onPress={() => {
+              const s = session?.mode === 'daily' && session.results.length === 0 ? session : startDailySession();
+              router.push(`/play/${s.plan[0]}`);
+            }}
+          />
+        </Reveal>
+        <Reveal index={5}>
+          <AppText variant="caption" color={colors.textSoft} center>
+            Accuracy matters more than speed.
+          </AppText>
+        </Reveal>
       </ScrollView>
     </ScreenBackground>
   );

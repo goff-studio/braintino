@@ -6,33 +6,22 @@ import { Ionicons } from '@expo/vector-icons';
 import { AppButton } from '@/components/AppButton';
 import { AppCard } from '@/components/AppCard';
 import { AppText } from '@/components/AppText';
-import { TinoMascot } from '@/components/TinoMascot';
-import { gradients } from '@/constants/colors';
+import { Reveal } from '@/components/Reveal';
 import { ScreenBackground } from '@/components/ScreenBackground';
+import { StatCard } from '@/components/StatCard';
+import { StatPill } from '@/components/StatPill';
+import { gradients } from '@/constants/colors';
 import { spacing } from '@/constants/spacing';
 import { MINI_GAMES } from '@/data/miniGames';
-import { rankForLevel } from '@/data/levels';
 import { getTodayDailyPlan } from '@/game/engines/dailyTraining';
 import { useTheme } from '@/hooks/useTheme';
 import { useGameStore } from '@/store/useGameStore';
 import { currentWeekKeys, todayKey } from '@/utils/date';
 
-function StatCard({ icon, value, label, color }: { icon: keyof typeof Ionicons.glyphMap; value: string; label: string; color: string }) {
-  const { colors } = useTheme();
-  return (
-    <AppCard style={{ flex: 1, alignItems: 'center', paddingVertical: spacing.md, gap: 2 }}>
-      <Ionicons name={icon} size={22} color={color} />
-      <AppText variant="gameLabel" weight="extraBold">
-        {value}
-      </AppText>
-      <AppText variant="caption" color={colors.textSoft}>
-        {label}
-      </AppText>
-    </AppCard>
-  );
-}
+const WEEKDAYS = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
+const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
 
-export default function HomeScreen() {
+export default function TodayScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
@@ -42,6 +31,9 @@ export default function HomeScreen() {
   const today = todayKey();
   const plan = useMemo(() => getTodayDailyPlan(today, progress), [today, progress]);
   const dailyDone = progress.lastDailyCompletedDate === today;
+
+  const now = new Date();
+  const dateLabel = `${WEEKDAYS[now.getDay()]}, ${MONTHS[now.getMonth()]} ${now.getDate()}`;
 
   const weeklyMinutes = useMemo(() => {
     const week = currentWeekKeys();
@@ -55,35 +47,41 @@ export default function HomeScreen() {
           paddingTop: insets.top + spacing.lg,
           paddingHorizontal: spacing.lg,
           paddingBottom: spacing.xxl,
-          gap: spacing.lg,
+          gap: spacing.xl,
         }}
       >
         {/* Header */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          <View>
-            <AppText variant="heading">Braintino</AppText>
-            <AppText variant="body" color={colors.textSoft}>
-              {rankForLevel(progress.globalLevel)} · Level {progress.globalLevel}
+        <Reveal index={0} style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between' }}>
+          <View style={{ gap: 2 }}>
+            <AppText variant="caption" weight="semiBold" color={colors.textMuted} style={{ letterSpacing: 0.8 }}>
+              {dateLabel}
             </AppText>
+            <AppText variant="display">Today</AppText>
           </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
-            <Ionicons name="server" size={18} color="#FFB84D" />
-            <AppText variant="bodyLarge" weight="extraBold">
-              {progress.coins}
-            </AppText>
+          <View style={{ flexDirection: 'row', gap: spacing.sm, paddingBottom: spacing.xs }}>
+            <StatPill
+              icon="flame-outline"
+              value={String(progress.streak)}
+              accessibilityLabel={`${progress.streak}-day streak`}
+            />
+            <StatPill
+              icon="trending-up"
+              value={`Lv ${progress.globalLevel}`}
+              accessibilityLabel={`Practice level ${progress.globalLevel}`}
+            />
           </View>
-        </View>
+        </Reveal>
 
-        {/* Daily card */}
-        <AppCard style={{ gap: spacing.md, paddingVertical: spacing.xl }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-            <TinoMascot size={92} mood={dailyDone ? 'cheer' : 'happy'} />
-            <View style={{ flex: 1 }}>
-              <AppText variant="title">Today’s Brain Boost</AppText>
-              <AppText variant="body" color={colors.textSoft}>
-                {plan.title} · 3 short puzzles · about 5 minutes
-              </AppText>
-            </View>
+        {/* Today's session — hero card */}
+        <Reveal index={1}>
+        <AppCard hero style={{ gap: spacing.lg }}>
+          <View style={{ gap: spacing.xs }}>
+            <AppText variant="title" color={colors.textOnDark}>
+              Today’s Session
+            </AppText>
+            <AppText variant="body" color={colors.textOnDarkSoft}>
+              {plan.title} · 3 exercises · about 5 minutes
+            </AppText>
           </View>
 
           <View style={{ flexDirection: 'row', gap: spacing.sm }}>
@@ -96,13 +94,17 @@ export default function HomeScreen() {
                     flex: 1,
                     alignItems: 'center',
                     gap: 4,
-                    backgroundColor: `${game.color}14`,
+                    backgroundColor: 'rgba(255,255,255,0.12)',
                     borderRadius: 16,
                     paddingVertical: spacing.sm,
                   }}
                 >
-                  <Ionicons name={game.icon as keyof typeof Ionicons.glyphMap} size={22} color={game.color} />
-                  <AppText variant="caption" weight="bold" color={colors.textSoft}>
+                  <Ionicons
+                    name={game.icon as keyof typeof Ionicons.glyphMap}
+                    size={22}
+                    color={colors.textOnDark}
+                  />
+                  <AppText variant="caption" weight="semiBold" color={colors.textOnDarkSoft}>
                     {game.shortTitle}
                   </AppText>
                 </View>
@@ -111,16 +113,22 @@ export default function HomeScreen() {
           </View>
 
           {dailyDone ? (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, justifyContent: 'center' }}>
-              <Ionicons name="checkmark-circle" size={24} color={colors.success} />
-              <AppText variant="bodyLarge" weight="bold" color={colors.success}>
-                You completed today’s boost!
+            <View style={{ alignItems: 'center', gap: spacing.xs }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+                <Ionicons name="checkmark-circle" size={24} color={colors.accent} />
+                <AppText variant="bodyLarge" weight="bold" color={colors.textOnDark}>
+                  Today’s session completed
+                </AppText>
+              </View>
+              <AppText variant="caption" color={colors.textOnDarkSoft}>
+                Come back tomorrow to keep your streak.
               </AppText>
             </View>
           ) : (
             <AppButton
-              title="Start Today"
+              title="Start Daily Practice"
               icon="play"
+              tone="lime"
               onPress={() => {
                 startDailySession();
                 router.push('/daily');
@@ -128,24 +136,55 @@ export default function HomeScreen() {
             />
           )}
         </AppCard>
+        </Reveal>
 
         {/* Stats */}
-        <View style={{ flexDirection: 'row', gap: spacing.md }}>
-          <StatCard icon="flame" value={String(progress.streak)} label="Streak" color="#FF7A59" />
-          <StatCard icon="star" value={String(progress.totalStars)} label="Stars" color="#FFB84D" />
-        </View>
-        <View style={{ flexDirection: 'row', gap: spacing.md }}>
-          <StatCard icon="time" value={`${weeklyMinutes}m`} label="This week" color="#35D0BA" />
-          <StatCard icon="trending-up" value={String(progress.globalLevel)} label="Level" color="#8E7CFF" />
+        <View style={{ gap: spacing.md }}>
+          <View style={{ flexDirection: 'row', gap: spacing.md }}>
+            <Reveal index={2} style={{ flex: 1 }}>
+              <StatCard icon="time-outline" value={`${weeklyMinutes}m`} label="This week" style={{ flex: 1 }} />
+            </Reveal>
+            <Reveal index={3} style={{ flex: 1 }}>
+              <StatCard
+                icon="flame-outline"
+                value={String(progress.streak)}
+                label="Practice streak"
+                color={colors.warning}
+                style={{ flex: 1 }}
+              />
+            </Reveal>
+          </View>
+          <View style={{ flexDirection: 'row', gap: spacing.md }}>
+            <Reveal index={4} style={{ flex: 1 }}>
+              <StatCard
+                icon="checkmark-done-outline"
+                value={String(progress.totalSessions)}
+                label="Sessions"
+                color={colors.success}
+                style={{ flex: 1 }}
+              />
+            </Reveal>
+            <Reveal index={5} style={{ flex: 1 }}>
+              <StatCard
+                icon="trending-up"
+                value={String(progress.globalLevel)}
+                label="Practice level"
+                color={colors.secondary}
+                style={{ flex: 1 }}
+              />
+            </Reveal>
+          </View>
         </View>
 
-        {/* Practice shortcut */}
-        <AppButton
-          title="Practice a Puzzle"
-          icon="game-controller"
-          variant="ghost"
-          onPress={() => router.push('/practice')}
-        />
+        {/* Practice library shortcut */}
+        <Reveal index={6}>
+          <AppButton
+            title="Browse Exercises"
+            icon="grid-outline"
+            variant="secondary"
+            onPress={() => router.push('/practice')}
+          />
+        </Reveal>
       </ScrollView>
     </ScreenBackground>
   );

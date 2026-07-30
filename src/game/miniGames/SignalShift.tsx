@@ -15,11 +15,13 @@ const SHAPES = [
   { name: 'Circle', icon: 'ellipse' as const },
   { name: 'Square', icon: 'square' as const },
   { name: 'Triangle', icon: 'triangle' as const },
+  { name: 'Star', icon: 'star' as const },
 ];
 const CARD_COLORS = [
-  { name: 'Blue', color: '#2F80ED' },
-  { name: 'Coral', color: '#FF7A59' },
-  { name: 'Mint', color: '#1FA98F' },
+  { name: 'Blue', color: '#0067B1' },
+  { name: 'Green', color: '#3E7C17' },
+  { name: 'Amber', color: '#B26A00' },
+  { name: 'Violet', color: '#6D5BD0' },
 ];
 
 type Rule = 'shape' | 'color';
@@ -30,7 +32,7 @@ export function SignalShift({ difficulty, paused, seed, onComplete, onRoundChang
   const tracker = useRoundTracker();
   const clock = useReactionClock(paused);
 
-  const zoneCount = Math.max(2, Math.min(3, difficulty.choices));
+  const zoneCount = Math.max(2, Math.min(4, difficulty.choices));
   const shapes = SHAPES.slice(0, zoneCount);
   const cardColors = CARD_COLORS.slice(0, zoneCount);
   const switchEvery = difficulty.ruleSwitchFrequency ?? 8;
@@ -102,8 +104,7 @@ export function SignalShift({ difficulty, paused, seed, onComplete, onRoundChang
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'space-evenly', paddingHorizontal: spacing.lg }}>
       <RuleBanner
         text={rule === 'shape' ? 'Sort by SHAPE' : 'Sort by COLOR'}
-        icon={rule === 'shape' ? 'shapes' : 'color-fill'}
-        color={rule === 'shape' ? '#8E7CFF' : '#FF7A59'}
+        icon={rule === 'shape' ? 'shapes-outline' : 'color-fill-outline'}
         changeToken={ruleChangeToken}
       />
 
@@ -118,25 +119,25 @@ export function SignalShift({ difficulty, paused, seed, onComplete, onRoundChang
           borderColor: colors.border,
           alignItems: 'center',
           justifyContent: 'center',
-          shadowColor: '#102A43',
-          shadowOpacity: 0.12,
+          shadowColor: colors.shadow,
+          shadowOpacity: 0.08,
           shadowRadius: 16,
           shadowOffset: { width: 0, height: 8 },
-          elevation: 5,
+          elevation: 4,
         }}
       >
         {phase === 'feedback' ? (
           <Ionicons
             name={lastCorrect ? 'checkmark-circle' : 'close-circle'}
             size={56}
-            color={lastCorrect ? colors.success : colors.warning}
+            color={lastCorrect ? colors.success : colors.error}
           />
         ) : (
           <>
             <Ionicons name={round.shape.icon} size={84} color={round.color.color} />
             {round.hasDistractor && (
               <View style={{ position: 'absolute', top: 10, right: 12 }}>
-                <Ionicons name="star" size={20} color="rgba(16,42,67,0.3)" />
+                <Ionicons name="star" size={20} color="rgba(11,31,53,0.3)" />
               </View>
             )}
           </>

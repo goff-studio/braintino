@@ -71,8 +71,8 @@ export function interstitialUnitId(mod: AdMobModule): string {
   return ADS_PRODUCTION && PROD_INTERSTITIAL ? PROD_INTERSTITIAL : mod.TestIds.INTERSTITIAL;
 }
 
-// Rewarded ad unit ids ("Bonus Coins Rewarded" units, 25 coins). Same
-// safe-fallback rule as the interstitial.
+// Rewarded ad unit ids (bonus-XP reward). Same safe-fallback rule as the
+// interstitial.
 const PROD_REWARDED = Platform.select({
   ios: 'ca-app-pub-1657859223488791/6270229566',
   android: 'ca-app-pub-1657859223488791/2251093509',
@@ -83,5 +83,8 @@ export function rewardedUnitId(mod: AdMobModule): string {
   return ADS_PRODUCTION && PROD_REWARDED ? PROD_REWARDED : mod.TestIds.REWARDED;
 }
 
-/** Coins granted by the "Bonus Coins Rewarded" placement (cosmetic_reward). */
-export const REWARDED_BONUS_COINS = 25;
+/**
+ * XP granted by the rewarded placement. The placement key stays
+ * 'cosmetic_reward' for ad-reporting continuity; the reward is now bonus XP.
+ */
+export const REWARDED_BONUS_XP = 25;

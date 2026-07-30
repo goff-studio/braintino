@@ -10,6 +10,7 @@ export const spacing = {
 
 export const radius = {
   card: 24,
+  cardLarge: 28,
   button: 18,
   tile: 20,
   chip: 999,
@@ -23,17 +24,17 @@ export const tapTarget = {
 
 export const shadows = {
   card: {
-    shadowColor: '#102A43',
-    shadowOpacity: 0.1,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 4,
+    shadowColor: '#0B1F35',
+    shadowOpacity: 0.06,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 3,
   },
   button: {
-    shadowColor: '#102A43',
-    shadowOpacity: 0.16,
-    shadowRadius: 10,
+    shadowColor: '#0B1F35',
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
     shadowOffset: { width: 0, height: 4 },
-    elevation: 3,
+    elevation: 2,
   },
 } as const;

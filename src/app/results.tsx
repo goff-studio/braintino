@@ -7,15 +7,17 @@ import { AnimatedNumber } from '@/components/AnimatedNumber';
 import { AppButton } from '@/components/AppButton';
 import { AppCard } from '@/components/AppCard';
 import { AppText } from '@/components/AppText';
+import { Reveal } from '@/components/Reveal';
 import { RewardedBonusCard } from '@/components/RewardedBonusCard';
 import { ScreenBackground } from '@/components/ScreenBackground';
+import { SessionRating } from '@/components/SessionRating';
 import { SkillChip } from '@/components/SkillChip';
-import { StarRating } from '@/components/StarRating';
-import { TinoMascot } from '@/components/TinoMascot';
+import { StatPill } from '@/components/StatPill';
 import { gradients } from '@/constants/colors';
 import { spacing } from '@/constants/spacing';
 import { MINI_GAMES } from '@/data/miniGames';
-import { createFriendlyFeedback } from '@/game/engines/scoring';
+import { difficultyChangeMessage } from '@/game/engines/difficulty';
+import { consistencyLabel, createFriendlyFeedback } from '@/game/engines/scoring';
 import { isSessionComplete, sessionTotals } from '@/game/engines/session';
 import { useTheme } from '@/hooks/useTheme';
 import { playSound } from '@/services/audio/audio';
@@ -31,6 +33,7 @@ export default function ResultsScreen() {
   const result = useGameStore((s) => s.lastResult);
   const session = useGameStore((s) => s.session);
   const progress = useGameStore((s) => s.progress);
+  const lastEarnedBadges = useGameStore((s) => s.lastEarnedBadges);
   const advanceToNextGame = useGameStore((s) => s.advanceToNextGame);
   const abandonSession = useGameStore((s) => s.abandonSession);
   const startPracticeSession = useGameStore((s) => s.startPracticeSession);
@@ -52,7 +55,7 @@ export default function ResultsScreen() {
       <ScreenBackground gradient={gradients.results}>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.lg }}>
           <AppText variant="title">Nothing to show yet</AppText>
-          <AppButton title="Back Home" onPress={() => router.replace('/(tabs)')} />
+          <AppButton title="Back to Today" onPress={() => router.replace('/(tabs)')} />
         </View>
       </ScreenBackground>
     );
@@ -60,6 +63,10 @@ export default function ResultsScreen() {
 
   const config = MINI_GAMES[result.miniGameId];
   const skills = Object.keys(result.skillScores) as SkillType[];
+  const difficultyNote =
+    result.difficultyDelta !== undefined && result.difficultyDelta !== 0
+      ? difficultyChangeMessage(result.level, result.level + result.difficultyDelta)
+      : null;
 
   const goHome = async () => {
     // Interstitial only when a session was COMPLETED (never mid-session, never
@@ -80,86 +87,145 @@ export default function ResultsScreen() {
     <ScreenBackground gradient={gradients.results}>
       <ScrollView
         contentContainerStyle={{
-          paddingTop: insets.top + spacing.lg,
+          paddingTop: insets.top + spacing.xl,
           paddingHorizontal: spacing.lg,
           paddingBottom: insets.bottom + spacing.xl,
           gap: spacing.lg,
           alignItems: 'stretch',
         }}
       >
-        <View style={{ alignItems: 'center', gap: spacing.sm }}>
-          <TinoMascot size={130} mood="cheer" />
+        <Reveal index={0} style={{ alignItems: 'center', gap: spacing.sm }}>
           <AppText variant="heading" center>
-            {dailyComplete ? 'Boost Complete!' : 'Well Done!'}
+            {dailyComplete ? 'Session Complete' : 'Exercise Complete'}
           </AppText>
           <AppText variant="bodyLarge" color={colors.textSoft} center>
             {createFriendlyFeedback(result)}
           </AppText>
-        </View>
+        </Reveal>
 
+        <Reveal index={1}>
         <AppCard style={{ alignItems: 'center', gap: spacing.md, paddingVertical: spacing.xl }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
             <Ionicons name={config.icon as keyof typeof Ionicons.glyphMap} size={20} color={config.color} />
-            <AppText variant="bodyLarge" weight="extraBold">
+            <AppText variant="bodyLarge" weight="bold">
               {config.title}
             </AppText>
           </View>
-          <StarRating stars={result.stars} size={40} animated />
+          <SessionRating rating={result.stars ?? 1} animated />
+
           <View style={{ flexDirection: 'row', gap: spacing.xxl, marginTop: spacing.sm }}>
             <View style={{ alignItems: 'center' }}>
-              <AnimatedNumber value={result.xp} prefix="+" variant="display" color={colors.primary} />
-              <AppText variant="caption" color={colors.textSoft}>
-                XP
-              </AppText>
-            </View>
-            <View style={{ alignItems: 'center' }}>
-              <AnimatedNumber value={result.coins} prefix="+" variant="display" color="#E5A33C" />
-              <AppText variant="caption" color={colors.textSoft}>
-                Coins
-              </AppText>
-            </View>
-            <View style={{ alignItems: 'center' }}>
-              <AppText variant="display" color={colors.accent}>
-                {Math.round(result.accuracy * 100)}%
-              </AppText>
+              <AnimatedNumber
+                value={Math.round(result.accuracy * 100)}
+                suffix="%"
+                variant="heading"
+                color={colors.primary}
+              />
               <AppText variant="caption" color={colors.textSoft}>
                 Accuracy
               </AppText>
             </View>
+            <View style={{ alignItems: 'center' }}>
+              <AnimatedNumber value={result.practiceScore} variant="heading" color={colors.text} />
+              <AppText variant="caption" color={colors.textSoft}>
+                Practice Score
+              </AppText>
+            </View>
+            <View style={{ alignItems: 'center' }}>
+              <AnimatedNumber value={result.xp} prefix="+" variant="heading" color={colors.textSoft} />
+              <AppText variant="caption" color={colors.textSoft}>
+                XP
+              </AppText>
+            </View>
           </View>
+
+          <View style={{ flexDirection: 'row', gap: spacing.sm, flexWrap: 'wrap', justifyContent: 'center' }}>
+            <StatPill
+              icon="pulse-outline"
+              value={consistencyLabel(result.consistency)}
+              accessibilityLabel={`Response consistency: ${consistencyLabel(result.consistency)}`}
+            />
+            {result.isPersonalBest && (
+              <StatPill icon="ribbon-outline" value="New personal best" variant="lime" />
+            )}
+          </View>
+
+          {difficultyNote && (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
+              <Ionicons
+                name={result.difficultyDelta! > 0 ? 'arrow-up' : 'arrow-down'}
+                size={14}
+                color={result.difficultyDelta! > 0 ? colors.success : colors.textSoft}
+              />
+              <AppText variant="caption" color={colors.textSoft}>
+                {difficultyNote}
+              </AppText>
+            </View>
+          )}
+
           <View style={{ flexDirection: 'row', gap: spacing.sm, flexWrap: 'wrap', justifyContent: 'center' }}>
             {skills.map((skill) => (
               <SkillChip key={skill} skill={skill} />
             ))}
           </View>
         </AppCard>
+        </Reveal>
 
-        {dailyComplete && totals && (
-          <View><AppCard style={{ gap: spacing.sm, alignItems: 'center' }}>
-              <AppText variant="bodyLarge" weight="extraBold">
-                Today’s Boost Summary
-              </AppText>
-              <View style={{ flexDirection: 'row', gap: spacing.xl }}>
-                <AppText variant="body" color={colors.textSoft}>
-                  ⭐ {totals.stars} stars
+        {lastEarnedBadges.length > 0 && (
+          <Reveal index={2}>
+          <AppCard style={{ gap: spacing.sm }}>
+            <AppText variant="bodyLarge" weight="bold">
+              Milestone reached
+            </AppText>
+            {lastEarnedBadges.map((badge) => (
+              <View key={badge.id} style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+                <Ionicons
+                  name={badge.icon as keyof typeof Ionicons.glyphMap}
+                  size={18}
+                  color={colors.success}
+                />
+                <AppText variant="body" weight="semiBold">
+                  {badge.title}
                 </AppText>
-                <AppText variant="body" color={colors.textSoft}>
-                  +{totals.xp} XP
-                </AppText>
-                <AppText variant="body" color={colors.textSoft}>
-                  🔥 {progress.streak}-day streak
+                <AppText variant="caption" color={colors.textMuted}>
+                  {badge.description}
                 </AppText>
               </View>
-              <AppText variant="body" color={colors.textSoft} center>
-                Tino is proud of your progress. See you tomorrow!
-              </AppText>
-            </AppCard>
-          </View>
+            ))}
+          </AppCard>
+          </Reveal>
         )}
 
-        {dailyComplete && <RewardedBonusCard />}
+        {dailyComplete && totals && (
+          <Reveal index={3}>
+          <AppCard style={{ gap: spacing.sm, alignItems: 'center' }}>
+            <AppText variant="bodyLarge" weight="bold">
+              Today’s Session
+            </AppText>
+            <View style={{ flexDirection: 'row', gap: spacing.sm, flexWrap: 'wrap', justifyContent: 'center' }}>
+              <StatPill icon="checkmark-done-outline" value={`${session!.results.length} exercises`} />
+              <StatPill icon="flash-outline" value={`+${totals.xp} XP`} />
+              <StatPill
+                icon="flame-outline"
+                value={`${progress.streak}-day streak`}
+                variant="lime"
+                accessibilityLabel={`${progress.streak}-day streak`}
+              />
+            </View>
+            <AppText variant="body" color={colors.textSoft} center>
+              Steady work. Come back tomorrow to keep the streak going.
+            </AppText>
+          </AppCard>
+          </Reveal>
+        )}
 
-        <View style={{ gap: spacing.md }}>
+        {dailyComplete && (
+          <Reveal index={4}>
+            <RewardedBonusCard />
+          </Reveal>
+        )}
+
+        <Reveal index={5} style={{ gap: spacing.md }}>
           {nextGameId ? (
             <>
               <AppButton
@@ -176,7 +242,7 @@ export default function ResultsScreen() {
             <>
               {!isDaily && (
                 <AppButton
-                  title="Practice Again"
+                  title="Repeat Exercise"
                   icon="refresh"
                   variant="secondary"
                   onPress={() => {
@@ -185,10 +251,10 @@ export default function ResultsScreen() {
                   }}
                 />
               )}
-              <AppButton title="Back Home" icon="home" onPress={goHome} />
+              <AppButton title="Done" icon="checkmark" onPress={goHome} />
             </>
           )}
-        </View>
+        </Reveal>
       </ScrollView>
     </ScreenBackground>
   );

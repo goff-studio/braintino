@@ -9,13 +9,13 @@ import { AppText } from '@/components/AppText';
 import { GameHeader } from '@/components/GameHeader';
 import { LevelBadge } from '@/components/LevelBadge';
 import { PauseModal } from '@/components/PauseModal';
+import { Reveal } from '@/components/Reveal';
 import { ScreenBackground } from '@/components/ScreenBackground';
 import { SkillChip } from '@/components/SkillChip';
-import { TinoMascot } from '@/components/TinoMascot';
 import { gameConfig } from '@/constants/gameConfig';
 import { spacing } from '@/constants/spacing';
 import { MINI_GAMES } from '@/data/miniGames';
-import { getDifficultyForMiniGame } from '@/game/engines/difficulty';
+import { getDifficultyForMiniGame, getStartingLevel } from '@/game/engines/difficulty';
 import { buildResult } from '@/game/engines/scoring';
 import { GAME_COMPONENTS } from '@/game/miniGames';
 import { useTheme } from '@/hooks/useTheme';
@@ -46,7 +46,7 @@ export default function GamePlayScreen() {
   const finishedRef = useRef(false);
 
   const mgProgress = progress.miniGameProgress[id];
-  const level = mgProgress?.level ?? 1;
+  const level = mgProgress?.level ?? getStartingLevel(progress, settings.difficultyMode);
   const totalRounds = gameConfig.roundsPerSession[id];
 
   const difficulty = useMemo(
@@ -57,24 +57,22 @@ export default function GamePlayScreen() {
 
   if (!config || !Game) {
     return (
-      <ScreenBackground gradient={['#F7FAFC', '#F7FAFC']}>
+      <ScreenBackground gradient={['#F5F7FC', '#F5F7FC']}>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.lg }}>
-          <AppText variant="title">Puzzle not found</AppText>
-          <AppButton title="Back Home" onPress={() => router.replace('/(tabs)')} />
+          <AppText variant="title">Exercise not found</AppText>
+          <AppButton title="Back to Today" onPress={() => router.replace('/(tabs)')} />
         </View>
       </ScreenBackground>
     );
   }
 
   const isDark = id === 'focus_flash';
-  const textColor = isDark ? colors.textOnDark : colors.text;
-  const softColor = isDark ? colors.textOnDarkSoft : colors.textSoft;
 
   const handleComplete = (summary: RoundsSummary) => {
     if (finishedRef.current) return;
     finishedRef.current = true;
     const minutes = Math.max(0.25, (Date.now() - startedAtRef.current) / 60000);
-    const result = buildResult(id, difficulty.level, summary, progress.streak);
+    const result = buildResult(id, difficulty.level, summary);
     completeGame(result, minutes);
     router.replace('/results');
   };
@@ -85,9 +83,9 @@ export default function GamePlayScreen() {
   };
 
   return (
-    <ScreenBackground gradient={config.gradient} decorative={!started}>
+    <ScreenBackground gradient={config.gradient}>
       {!started ? (
-        // Intro / tutorial card
+        // Intro card
         <View
           style={{
             flex: 1,
@@ -98,16 +96,14 @@ export default function GamePlayScreen() {
             gap: spacing.lg,
           }}
         >
-          <View style={{ alignItems: 'center' }}>
-            <TinoMascot size={110} mood="happy" />
-          </View>
+          <Reveal index={0} exit>
           <AppCard style={{ gap: spacing.md, alignItems: 'center', paddingVertical: spacing.xl }}>
             <View
               style={{
                 width: 64,
                 height: 64,
                 borderRadius: 22,
-                backgroundColor: `${config.color}1A`,
+                backgroundColor: `${config.color}14`,
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
@@ -119,29 +115,34 @@ export default function GamePlayScreen() {
             </AppText>
             <View style={{ flexDirection: 'row', gap: spacing.sm, alignItems: 'center' }}>
               <SkillChip skill={config.skill} labelOverride={config.skillLabel} />
-              <LevelBadge level={level} color={config.color} />
+              <LevelBadge level={level} />
             </View>
             <AppText variant="body" color={colors.textSoft} center>
               {config.howToPlay}
             </AppText>
-            {settings.relaxedMode && (
-              <AppText variant="caption" color={colors.accent} center>
-                Relaxed pace is on — extra time, less pressure.
+            {settings.difficultyMode === 'relaxed' && (
+              <AppText variant="caption" color={colors.success} center>
+                Relaxed pace is on — extra time per prompt.
               </AppText>
             )}
           </AppCard>
-          <AppButton
-            title="Ready? Let’s go"
-            icon="play"
-            onPress={() => {
-              startedAtRef.current = Date.now();
-              setStarted(true);
-            }}
-          />
-          <AppButton title="Back" variant="ghost" onPress={() => router.back()} />
+          </Reveal>
+          <Reveal index={1} exit>
+            <AppButton
+              title="Start"
+              icon="play"
+              onPress={() => {
+                startedAtRef.current = Date.now();
+                setStarted(true);
+              }}
+            />
+          </Reveal>
+          <Reveal index={2} exit>
+            <AppButton title="Back" variant="ghost" onPress={() => router.back()} />
+          </Reveal>
         </View>
       ) : (
-        <View style={{ flex: 1, paddingBottom: insets.bottom + spacing.md }}>
+        <Reveal index={0} style={{ flex: 1, paddingBottom: insets.bottom + spacing.md }}>
           <GameHeader
             title={config.title}
             round={round}
@@ -159,10 +160,7 @@ export default function GamePlayScreen() {
               onRoundChange={setRound}
             />
           </View>
-          <AppText variant="caption" color={softColor} center>
-            {config.location}
-          </AppText>
-        </View>
+        </Reveal>
       )}
 
       <PauseModal

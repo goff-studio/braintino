@@ -2,36 +2,37 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable, View, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppText } from '@/components/AppText';
-import { TinoMascot } from '@/components/TinoMascot';
 import { gameConfig } from '@/constants/gameConfig';
 import { radius, spacing } from '@/constants/spacing';
 import { useTheme } from '@/hooks/useTheme';
 import { playSound } from '@/services/audio/audio';
 import { successHaptic, warningHaptic } from '@/services/haptics/haptics';
 import { rngFromString, sample, shuffle } from '@/utils/random';
-import { usePausableTimeout, usePhase, useRoundTracker, type MiniGameProps } from './shared';
+import { usePausableTimeout, usePhase, useReactionClock, useRoundTracker, type MiniGameProps } from './shared';
 
-type Category = 'food' | 'nature' | 'objects';
+type Category = 'essentials' | 'food' | 'work';
 
+// Everyday items in a single muted accent — practical, not decorative.
+const ACCENT = '#4B6478';
 const ITEMS: { name: string; icon: keyof typeof Ionicons.glyphMap; color: string; cat: Category }[] = [
-  { name: 'Apple', icon: 'nutrition', color: '#FF6B6B', cat: 'food' },
-  { name: 'Tea', icon: 'cafe', color: '#B3855A', cat: 'food' },
-  { name: 'Fish', icon: 'fish', color: '#2F80ED', cat: 'food' },
-  { name: 'Egg', icon: 'egg', color: '#FFB84D', cat: 'food' },
-  { name: 'Flower', icon: 'flower', color: '#FF7A59', cat: 'nature' },
-  { name: 'Leaf', icon: 'leaf', color: '#42C77B', cat: 'nature' },
-  { name: 'Rose', icon: 'rose', color: '#F06292', cat: 'nature' },
-  { name: 'Book', icon: 'book', color: '#8E7CFF', cat: 'objects' },
-  { name: 'Key', icon: 'key', color: '#FFD166', cat: 'objects' },
-  { name: 'Lantern', icon: 'bulb', color: '#FFB84D', cat: 'objects' },
-  { name: 'Compass', icon: 'compass', color: '#35D0BA', cat: 'objects' },
-  { name: 'Rope', icon: 'link', color: '#B3855A', cat: 'objects' },
+  { name: 'Keys', icon: 'key', color: ACCENT, cat: 'essentials' },
+  { name: 'Wallet', icon: 'wallet', color: ACCENT, cat: 'essentials' },
+  { name: 'Phone', icon: 'phone-portrait', color: ACCENT, cat: 'essentials' },
+  { name: 'Glasses', icon: 'glasses', color: ACCENT, cat: 'essentials' },
+  { name: 'Coffee', icon: 'cafe', color: ACCENT, cat: 'food' },
+  { name: 'Water', icon: 'water', color: ACCENT, cat: 'food' },
+  { name: 'Snack', icon: 'fast-food', color: ACCENT, cat: 'food' },
+  { name: 'Apple', icon: 'nutrition', color: ACCENT, cat: 'food' },
+  { name: 'Notebook', icon: 'book', color: ACCENT, cat: 'work' },
+  { name: 'Charger', icon: 'battery-charging', color: ACCENT, cat: 'work' },
+  { name: 'Card', icon: 'card', color: ACCENT, cat: 'work' },
+  { name: 'Headphones', icon: 'headset', color: ACCENT, cat: 'work' },
 ];
 
 const CATEGORY_LABEL: Record<Category, string> = {
-  food: 'food & drinks',
-  nature: 'plants & flowers',
-  objects: 'everyday objects',
+  essentials: 'everyday essentials',
+  food: 'food & drink',
+  work: 'work items',
 };
 
 type RoundData = {
@@ -48,7 +49,7 @@ function buildRound(seed: string, roundIndex: number, difficulty: MiniGameProps[
   const listLength = difficulty.sequenceLength ?? 2;
 
   if (mode === 'category') {
-    const cat = (['food', 'nature', 'objects'] as Category[])[Math.floor(rng() * 3)];
+    const cat = (['essentials', 'food', 'work'] as Category[])[Math.floor(rng() * 3)];
     const inCat = sample(rng, ITEMS.filter((i) => i.cat === cat), 3);
     const others = sample(rng, ITEMS.filter((i) => i.cat !== cat), gridSize - inCat.length);
     return {
@@ -73,7 +74,7 @@ function buildRound(seed: string, roundIndex: number, difficulty: MiniGameProps[
   return {
     grid: shuffle(rng, [...listItems, ...fillers]),
     targets: listItems.map((i) => i.name),
-    instruction: 'Remember Tino’s shopping list',
+    instruction: 'Memorize this list',
     listItems,
   };
 }
@@ -83,6 +84,7 @@ export function MarketMemory({ difficulty, paused, seed, onComplete, onRoundChan
   const { colors } = useTheme();
   const totalRounds = gameConfig.roundsPerSession.market_memory;
   const tracker = useRoundTracker();
+  const clock = useReactionClock(paused);
 
   const [roundIndex, setRoundIndex] = useState(0);
   const { phase, setPhase, token } = usePhase<'list' | 'find' | 'roundDone'>('list');
@@ -100,6 +102,7 @@ export function MarketMemory({ difficulty, paused, seed, onComplete, onRoundChan
     () => {
       setCollected([]);
       setWrongItem(null);
+      clock.start();
       setPhase('find');
     },
     phase === 'list' ? difficulty.previewMs : null,
@@ -123,7 +126,8 @@ export function MarketMemory({ difficulty, paused, seed, onComplete, onRoundChan
   const handleTap = (name: string) => {
     if (phase !== 'find' || collected.includes(name)) return;
     const correct = round.targets.includes(name);
-    tracker.record(correct);
+    tracker.record(correct, clock.elapsed());
+    clock.start();
     if (correct) {
       playSound('correct');
       successHaptic();
@@ -144,7 +148,6 @@ export function MarketMemory({ difficulty, paused, seed, onComplete, onRoundChan
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'space-evenly', paddingHorizontal: spacing.lg }}>
       {phase === 'list' ? (
         <View style={{ alignItems: 'center', gap: spacing.lg, width: '100%' }}>
-          <TinoMascot size={96} mood="happy" />
           <View
             style={{
               backgroundColor: colors.card,
@@ -184,9 +187,6 @@ export function MarketMemory({ difficulty, paused, seed, onComplete, onRoundChan
                 ))}
               </View>
             )}
-            <AppText variant="caption" color={colors.textSoft}>
-              Remember it — the market opens soon…
-            </AppText>
           </View>
         </View>
       ) : (
@@ -196,9 +196,9 @@ export function MarketMemory({ difficulty, paused, seed, onComplete, onRoundChan
               {showListDuringFind ? round.instruction : 'Tap only the items from the list'}
             </AppText>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
-              <Ionicons name="basket" size={20} color={colors.warning} />
+              <Ionicons name="checkmark-done-outline" size={20} color={colors.success} />
               <AppText variant="body" weight="bold" color={colors.textSoft}>
-                {collected.length}/{round.targets.length} collected
+                {collected.length}/{round.targets.length} found
               </AppText>
             </View>
           </View>
@@ -255,7 +255,7 @@ export function MarketMemory({ difficulty, paused, seed, onComplete, onRoundChan
           <View style={{ minHeight: 36, alignItems: 'center' }}>
             {phase === 'roundDone' && (
               <AppText variant="gameLabel" color={colors.success} center>
-                Basket packed!
+                All items found.
               </AppText>
             )}
           </View>

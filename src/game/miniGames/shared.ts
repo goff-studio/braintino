@@ -108,5 +108,5 @@ export function usePhase<T extends string>(initial: T) {
   return { phase, setPhase, token };
 }
 
-export const ENCOURAGEMENTS_CORRECT = ['Nice focus.', 'Great catch!', 'That was steady.', 'Lovely.', 'Well spotted!'];
-export const ENCOURAGEMENTS_MISS = ['No rush.', 'Almost — keep going.', 'All good, next one.', 'Steady does it.'];
+export const ENCOURAGEMENTS_CORRECT = ['Correct.', 'Sharp.', 'Clean.', 'Accurate.'];
+export const ENCOURAGEMENTS_MISS = ['Not quite.', 'Keep going.', 'Next one.', 'Stay with it.'];

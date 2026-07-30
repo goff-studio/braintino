@@ -9,18 +9,21 @@ import { playSound } from '@/services/audio/audio';
 import { successHaptic, warningHaptic } from '@/services/haptics/haptics';
 import { rngFromString, sample, shuffle } from '@/utils/random';
 import { RuleBanner } from './RuleBanner';
-import { usePausableTimeout, usePhase, useRoundTracker, type MiniGameProps } from './shared';
+import { usePausableTimeout, usePhase, useReactionClock, useRoundTracker, type MiniGameProps } from './shared';
 
+// City waypoints in a single muted accent; the lit state uses brand blue so
+// order — not color — is what the player encodes.
+const LIT_COLOR = '#0067B1';
 const LANDMARKS: { name: string; icon: keyof typeof Ionicons.glyphMap; color: string }[] = [
-  { name: 'Lighthouse', icon: 'bonfire', color: '#FF7A59' },
-  { name: 'Garden', icon: 'flower', color: '#42C77B' },
-  { name: 'Dock', icon: 'boat', color: '#2F80ED' },
-  { name: 'Bridge', icon: 'git-branch', color: '#8E7CFF' },
-  { name: 'Market', icon: 'basket', color: '#FFB84D' },
-  { name: 'Fountain', icon: 'water', color: '#35D0BA' },
-  { name: 'Windmill', icon: 'aperture', color: '#F06292' },
-  { name: 'Library', icon: 'book', color: '#B3855A' },
-  { name: 'Beach', icon: 'sunny', color: '#FFD166' },
+  { name: 'Home', icon: 'home', color: '#0E7C86' },
+  { name: 'Office', icon: 'business', color: '#0E7C86' },
+  { name: 'Café', icon: 'cafe', color: '#0E7C86' },
+  { name: 'Park', icon: 'leaf', color: '#0E7C86' },
+  { name: 'Station', icon: 'train', color: '#0E7C86' },
+  { name: 'Gym', icon: 'barbell', color: '#0E7C86' },
+  { name: 'Library', icon: 'library', color: '#0E7C86' },
+  { name: 'Market', icon: 'cart', color: '#0E7C86' },
+  { name: 'Bank', icon: 'card', color: '#0E7C86' },
 ];
 
 /** Rotate a 3x3 grid index 90° clockwise. */
@@ -35,6 +38,7 @@ export function RouteRecall({ difficulty, paused, seed, onComplete, onRoundChang
   const { colors } = useTheme();
   const totalRounds = gameConfig.roundsPerSession.route_recall;
   const tracker = useRoundTracker();
+  const clock = useReactionClock(paused);
 
   const routeLength = difficulty.routeLength ?? 3;
   const rotateMap = difficulty.rotateMap ?? false;
@@ -88,6 +92,7 @@ export function RouteRecall({ difficulty, paused, seed, onComplete, onRoundChang
         setPreviewStep(-1);
         setInputPos(0);
         setStepMistakes(0);
+        clock.start();
         setPhase('recall');
       }
     },
@@ -100,6 +105,7 @@ export function RouteRecall({ difficulty, paused, seed, onComplete, onRoundChang
       setRotated(true);
       setInputPos(0);
       setStepMistakes(0);
+      clock.start();
       setPhase('recall');
     },
     phase === 'rotate' ? 1100 : null,
@@ -124,7 +130,8 @@ export function RouteRecall({ difficulty, paused, seed, onComplete, onRoundChang
   const handleTap = (originalCell: number) => {
     if (phase !== 'recall') return;
     const correct = originalCell === route[inputPos];
-    tracker.record(correct);
+    tracker.record(correct, clock.elapsed());
+    clock.start();
     setTapped({ cell: originalCell, kind: correct ? 'correct' : 'wrong' });
     if (correct) {
       playSound('correct');
@@ -157,15 +164,14 @@ export function RouteRecall({ difficulty, paused, seed, onComplete, onRoundChang
     phase === 'recall'
       ? 'Tap the route in order'
       : phase === 'rotate'
-        ? 'The island is turning…'
-        : 'Watch Tino’s route';
+        ? 'The map is rotating…'
+        : 'Watch the route';
 
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'space-evenly', paddingHorizontal: spacing.lg }}>
       <RuleBanner
         text={banner}
-        icon={phase === 'recall' ? 'hand-left' : phase === 'rotate' ? 'sync' : 'eye'}
-        color={phase === 'rotate' ? colors.warning : colors.accent}
+        icon={phase === 'recall' ? 'hand-left-outline' : phase === 'rotate' ? 'sync-outline' : 'eye-outline'}
         changeToken={phase === 'recall' ? 1 : 0}
       />
 
@@ -199,9 +205,9 @@ export function RouteRecall({ difficulty, paused, seed, onComplete, onRoundChang
                 height: cellSize,
                 borderRadius: radius.tile,
                 backgroundColor: isLit
-                  ? landmark.color
+                  ? LIT_COLOR
                   : isDecoy
-                    ? 'rgba(16,42,67,0.25)'
+                    ? 'rgba(11,31,53,0.25)'
                     : collected
                       ? `${colors.success}33`
                       : pressed
@@ -235,7 +241,7 @@ export function RouteRecall({ difficulty, paused, seed, onComplete, onRoundChang
                     justifyContent: 'center',
                   }}
                 >
-                  <AppText variant="caption" weight="extraBold" color={landmark.color}>
+                  <AppText variant="caption" weight="extraBold" color={LIT_COLOR}>
                     {routeStep + 1}
                   </AppText>
                 </View>
@@ -268,7 +274,7 @@ export function RouteRecall({ difficulty, paused, seed, onComplete, onRoundChang
                   width: 12,
                   height: 12,
                   borderRadius: 6,
-                  backgroundColor: i < inputPos ? colors.success : 'rgba(16,42,67,0.18)',
+                  backgroundColor: i < inputPos ? colors.success : colors.trackFaint,
                 }}
               />
             ))}
@@ -276,7 +282,7 @@ export function RouteRecall({ difficulty, paused, seed, onComplete, onRoundChang
         )}
         {phase === 'roundDone' && (
           <AppText variant="gameLabel" color={colors.success} center>
-            You remembered the route!
+            Route complete.
           </AppText>
         )}
       </View>

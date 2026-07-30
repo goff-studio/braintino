@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text, type StyleProp, type TextStyle } from 'react-native';
-import { fonts, fontSizes } from '@/constants/typography';
+import { fonts, fontSizes, letterSpacings } from '@/constants/typography';
 import { useTheme } from '@/hooks/useTheme';
 
 type Variant = keyof typeof fontSizes;
@@ -17,12 +17,12 @@ type Props = {
 };
 
 const defaultWeight: Record<Variant, keyof typeof fonts> = {
-  caption: 'semiBold',
+  caption: 'medium',
   body: 'regular',
-  bodyLarge: 'semiBold',
-  button: 'bold',
+  bodyLarge: 'medium',
+  button: 'semiBold',
   gameLabel: 'bold',
-  title: 'extraBold',
+  title: 'bold',
   heading: 'extraBold',
   display: 'extraBold',
   resultNumber: 'extraBold',
@@ -47,6 +47,7 @@ export function AppText({
         {
           fontFamily: fonts[weight ?? defaultWeight[variant]],
           fontSize: fs(fontSizes[variant]),
+          letterSpacing: letterSpacings[variant],
           color: color ?? colors.text,
           textAlign: center ? 'center' : undefined,
         },
