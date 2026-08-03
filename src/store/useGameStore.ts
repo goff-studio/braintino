@@ -14,13 +14,28 @@ import { setAnalyticsConsent } from '@/services/analytics/analytics';
 import { AppsFlyerService } from '@/services/attribution/AppsFlyerService';
 import { setSoundEnabled } from '@/services/audio/audio';
 import { setHapticsEnabled } from '@/services/haptics/haptics';
+import {
+  cancelReminder,
+  ensureReminderPermission,
+  nextAnchorKey,
+  scheduleReminder,
+  syncReminder,
+  type ReminderPermission,
+} from '@/services/notifications/notifications';
 import * as storage from '@/services/storage/storage';
 import type { MiniGameId, MiniGameResult, SessionState } from '@/types/game';
 import type { MiniGameProgress, PlayerProgress } from '@/types/progress';
-import { defaultSettings, type DifficultyMode, type PlayerSettings } from '@/types/settings';
+import {
+  defaultSettings,
+  type DifficultyMode,
+  type PlayerSettings,
+  type ReminderFrequency,
+} from '@/types/settings';
 import { daysAgoKey, todayKey, yesterdayKey } from '@/utils/date';
 
 const MAX_RECENT_RESULTS = 15;
+
+type ReminderConfig = { frequency?: ReminderFrequency; hour?: number; minute?: number };
 
 function initialMiniGameProgress(level: number): MiniGameProgress {
   return { level, bestPracticeScore: 0, bestAccuracy: 0, sessionsPlayed: 0, lastResults: [] };
@@ -38,6 +53,16 @@ type GameStore = {
 
   hydrate: () => Promise<void>;
   updateSettings: (partial: Partial<PlayerSettings>) => void;
+  /**
+   * Turn the practice reminder on/off, optionally setting frequency/time in
+   * the same step (used by onboarding). Handles the OS permission and only
+   * persists `reminderEnabled: true` once notifications are actually
+   * scheduled; returns the permission outcome so the UI can react to
+   * 'blocked' (must be enabled in system Settings).
+   */
+  setPracticeReminder: (enabled: boolean, config?: ReminderConfig) => Promise<ReminderPermission>;
+  /** Change reminder frequency/time; reschedules if the reminder is on. */
+  updateReminderConfig: (config: ReminderConfig) => void;
   completeOnboarding: (mode: DifficultyMode, prefs: Partial<PlayerSettings>) => void;
 
   startDailySession: () => SessionState;
@@ -68,6 +93,19 @@ export const useGameStore = create<GameStore>((set, get) => ({
     setSoundEnabled(settings.soundEnabled);
     setHapticsEnabled(settings.hapticsEnabled);
     set({ progress, settings, hydrated: true });
+    // Reconcile the local reminder schedule with settings: refreshes the
+    // rolling every-other-day window and catches a permission revoked in
+    // system Settings since last launch.
+    if (settings.reminderEnabled) {
+      syncReminder(
+        settings.reminderFrequency,
+        settings.reminderHour,
+        settings.reminderMinute,
+        settings.reminderAnchor ?? todayKey()
+      ).then((active) => {
+        if (!active) get().updateSettings({ reminderEnabled: false });
+      });
+    }
   },
 
   updateSettings: (partial) => {
@@ -82,6 +120,47 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }
     set({ settings });
     storage.saveSettings(settings);
+  },
+
+  setPracticeReminder: async (enabled, config) => {
+    if (!enabled) {
+      await cancelReminder();
+      get().updateSettings({ reminderEnabled: false });
+      return 'granted';
+    }
+    const permission = await ensureReminderPermission();
+    if (permission !== 'granted') return permission;
+    const s = get().settings;
+    const frequency = config?.frequency ?? s.reminderFrequency;
+    const hour = config?.hour ?? s.reminderHour;
+    const minute = config?.minute ?? s.reminderMinute;
+    const anchor = nextAnchorKey(hour, minute);
+    await scheduleReminder(frequency, hour, minute, anchor);
+    get().updateSettings({
+      reminderEnabled: true,
+      reminderFrequency: frequency,
+      reminderHour: hour,
+      reminderMinute: minute,
+      reminderAnchor: anchor,
+    });
+    return 'granted';
+  },
+
+  updateReminderConfig: (config) => {
+    const s = get().settings;
+    const frequency = config.frequency ?? s.reminderFrequency;
+    const hour = config.hour ?? s.reminderHour;
+    const minute = config.minute ?? s.reminderMinute;
+    const anchor = nextAnchorKey(hour, minute);
+    get().updateSettings({
+      reminderFrequency: frequency,
+      reminderHour: hour,
+      reminderMinute: minute,
+      reminderAnchor: anchor,
+    });
+    if (s.reminderEnabled) {
+      scheduleReminder(frequency, hour, minute, anchor).catch(() => {});
+    }
   },
 
   completeOnboarding: (mode, prefs) => {

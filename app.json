@@ -2,7 +2,7 @@
   "expo": {
     "name": "Braintino",
     "slug": "braintino",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "braintino",
@@ -57,6 +57,13 @@
         }
       ],
       "expo-asset",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/android-icon-monochrome.png",
+          "color": "#102A43"
+        }
+      ],
       "@react-native-firebase/app",
       [
         "@react-native-firebase/analytics",

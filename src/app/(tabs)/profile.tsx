@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Pressable, ScrollView, View } from 'react-native';
+import { Linking, Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppButton } from '@/components/AppButton';
 import { AppCard } from '@/components/AppCard';
@@ -16,7 +16,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { tapHaptic } from '@/services/haptics/haptics';
 import { AdService } from '@/services/monetization/AdService';
 import { useGameStore } from '@/store/useGameStore';
-import type { DifficultyMode } from '@/types/settings';
+import type { DifficultyMode, ReminderFrequency } from '@/types/settings';
 
 const DIFFICULTY_MODES: { id: DifficultyMode; label: string; description: string }[] = [
   { id: 'relaxed', label: 'Relaxed', description: 'More time per prompt' },
@@ -24,13 +24,28 @@ const DIFFICULTY_MODES: { id: DifficultyMode; label: string; description: string
   { id: 'challenging', label: 'Challenging', description: 'Faster pace, higher demand' },
 ];
 
+const REMINDER_FREQUENCIES: { id: ReminderFrequency; label: string; description: string }[] = [
+  { id: 'daily', label: 'Daily', description: 'Every day' },
+  { id: 'everyOtherDay', label: 'Alternate', description: 'Every other day' },
+  { id: 'weekdays', label: 'Weekdays', description: 'Mon – Fri' },
+];
+
+const REMINDER_TIMES: { label: string; description: string; hour: number; minute: number }[] = [
+  { label: 'Morning', description: '9:00 AM', hour: 9, minute: 0 },
+  { label: 'Afternoon', description: '2:00 PM', hour: 14, minute: 0 },
+  { label: 'Evening', description: '7:00 PM', hour: 19, minute: 0 },
+];
+
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { colors, settings } = useTheme();
   const progress = useGameStore((s) => s.progress);
   const updateSettings = useGameStore((s) => s.updateSettings);
+  const setPracticeReminder = useGameStore((s) => s.setPracticeReminder);
+  const updateReminderConfig = useGameStore((s) => s.updateReminderConfig);
   const resetAllProgress = useGameStore((s) => s.resetAllProgress);
   const [confirmingReset, setConfirmingReset] = useState(false);
+  const [reminderBlocked, setReminderBlocked] = useState(false);
 
   return (
     <ScreenBackground gradient={gradients.home}>
@@ -87,6 +102,110 @@ export default function ProfileScreen() {
         </Reveal>
 
         <Reveal index={3}>
+        <AppCard style={{ gap: spacing.xs }}>
+          <AppText variant="bodyLarge" weight="bold" style={{ marginBottom: spacing.xs }}>
+            Daily Reminder
+          </AppText>
+          <ToggleRow
+            label="Practice reminder"
+            description="A daily nudge at your chosen time. Nothing leaves your device."
+            icon="alarm-outline"
+            value={settings.reminderEnabled}
+            onValueChange={(v) => {
+              setPracticeReminder(v).then((result) => setReminderBlocked(result === 'blocked'));
+            }}
+          />
+          {reminderBlocked && !settings.reminderEnabled && (
+            <View style={{ gap: spacing.sm }}>
+              <AppText variant="caption" color={colors.textSoft}>
+                Notifications are turned off for Braintino in your device settings.
+              </AppText>
+              <AppButton
+                title="Open device settings"
+                variant="ghost"
+                onPress={() => Linking.openSettings()}
+              />
+            </View>
+          )}
+          {settings.reminderEnabled && (
+            <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: spacing.xs }}>
+              {REMINDER_FREQUENCIES.map((freq) => {
+                const active = settings.reminderFrequency === freq.id;
+                return (
+                  <Pressable
+                    key={freq.id}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${freq.label}: ${freq.description}`}
+                    accessibilityState={{ selected: active }}
+                    onPress={() => {
+                      tapHaptic();
+                      updateReminderConfig({ frequency: freq.id });
+                    }}
+                    style={{
+                      flex: 1,
+                      borderRadius: radius.button,
+                      borderWidth: 1.5,
+                      borderColor: active ? colors.primary : colors.border,
+                      backgroundColor: active ? colors.chipBlue : 'transparent',
+                      padding: spacing.md,
+                      alignItems: 'center',
+                      gap: 2,
+                      minHeight: 64,
+                    }}
+                  >
+                    <AppText variant="body" weight="bold" color={active ? colors.primary : colors.text}>
+                      {freq.label}
+                    </AppText>
+                    <AppText variant="caption" color={colors.textSoft} center>
+                      {freq.description}
+                    </AppText>
+                  </Pressable>
+                );
+              })}
+            </View>
+          )}
+          {settings.reminderEnabled && (
+            <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: spacing.xs }}>
+              {REMINDER_TIMES.map((time) => {
+                const active =
+                  settings.reminderHour === time.hour && settings.reminderMinute === time.minute;
+                return (
+                  <Pressable
+                    key={time.label}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Remind me in the ${time.label.toLowerCase()} at ${time.description}`}
+                    accessibilityState={{ selected: active }}
+                    onPress={() => {
+                      tapHaptic();
+                      updateReminderConfig({ hour: time.hour, minute: time.minute });
+                    }}
+                    style={{
+                      flex: 1,
+                      borderRadius: radius.button,
+                      borderWidth: 1.5,
+                      borderColor: active ? colors.primary : colors.border,
+                      backgroundColor: active ? colors.chipBlue : 'transparent',
+                      padding: spacing.md,
+                      alignItems: 'center',
+                      gap: 2,
+                      minHeight: 64,
+                    }}
+                  >
+                    <AppText variant="body" weight="bold" color={active ? colors.primary : colors.text}>
+                      {time.label}
+                    </AppText>
+                    <AppText variant="caption" color={colors.textSoft} center>
+                      {time.description}
+                    </AppText>
+                  </Pressable>
+                );
+              })}
+            </View>
+          )}
+        </AppCard>
+        </Reveal>
+
+        <Reveal index={4}>
         <AppCard style={{ gap: spacing.md }}>
           <AppText variant="bodyLarge" weight="bold">
             Difficulty Mode
@@ -132,7 +251,7 @@ export default function ProfileScreen() {
         </AppCard>
         </Reveal>
 
-        <Reveal index={4}>
+        <Reveal index={5}>
         <AppCard style={{ gap: spacing.xs }}>
           <AppText variant="bodyLarge" weight="bold" style={{ marginBottom: spacing.xs }}>
             Accessibility
@@ -161,7 +280,7 @@ export default function ProfileScreen() {
         </AppCard>
         </Reveal>
 
-        <Reveal index={5}>
+        <Reveal index={6}>
         <AppCard style={{ gap: spacing.xs }}>
           <AppText variant="bodyLarge" weight="bold" style={{ marginBottom: spacing.xs }}>
             Privacy
@@ -186,7 +305,7 @@ export default function ProfileScreen() {
         </AppCard>
         </Reveal>
 
-        <Reveal index={6}>
+        <Reveal index={7}>
         <AppCard style={{ gap: spacing.md }}>
           <AppText variant="bodyLarge" weight="bold">
             Data
@@ -212,7 +331,7 @@ export default function ProfileScreen() {
         </AppCard>
         </Reveal>
 
-        <Reveal index={7}>
+        <Reveal index={8}>
         <AppCard style={{ gap: spacing.sm }}>
           <AppText variant="bodyLarge" weight="bold">
             About Braintino

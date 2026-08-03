@@ -15,12 +15,24 @@ import { radius, spacing } from '@/constants/spacing';
 import { useTheme } from '@/hooks/useTheme';
 import { tapHaptic } from '@/services/haptics/haptics';
 import { useGameStore } from '@/store/useGameStore';
-import type { DifficultyMode } from '@/types/settings';
+import type { DifficultyMode, ReminderFrequency } from '@/types/settings';
 
 const MODES: { id: DifficultyMode; label: string; description: string; icon: keyof typeof Ionicons.glyphMap }[] = [
   { id: 'relaxed', label: 'Relaxed', description: 'More time per prompt, calmer pace', icon: 'cafe-outline' },
   { id: 'balanced', label: 'Balanced', description: 'The standard adult baseline', icon: 'speedometer-outline' },
   { id: 'challenging', label: 'Challenging', description: 'Faster pace, higher demand', icon: 'flash-outline' },
+];
+
+const REMINDER_FREQUENCIES: { id: ReminderFrequency; label: string; description: string }[] = [
+  { id: 'daily', label: 'Daily', description: 'Every day' },
+  { id: 'everyOtherDay', label: 'Alternate', description: 'Every other day' },
+  { id: 'weekdays', label: 'Weekdays', description: 'Mon – Fri' },
+];
+
+const REMINDER_TIMES: { label: string; description: string; hour: number; minute: number }[] = [
+  { label: 'Morning', description: '9:00 AM', hour: 9, minute: 0 },
+  { label: 'Afternoon', description: '2:00 PM', hour: 14, minute: 0 },
+  { label: 'Evening', description: '7:00 PM', hour: 19, minute: 0 },
 ];
 
 export default function OnboardingScreen() {
@@ -29,12 +41,33 @@ export default function OnboardingScreen() {
   const { colors } = useTheme();
   const completeOnboarding = useGameStore((s) => s.completeOnboarding);
   const startPracticeSession = useGameStore((s) => s.startPracticeSession);
+  const setPracticeReminder = useGameStore((s) => s.setPracticeReminder);
 
   const [step, setStep] = useState(0);
   const [mode, setMode] = useState<DifficultyMode>('balanced');
   const [biggerText, setBiggerText] = useState(false);
   const [reduceMotionPref, setReduceMotionPref] = useState(false);
   const [highContrast, setHighContrast] = useState(false);
+  const [reminderFrequency, setReminderFrequency] = useState<ReminderFrequency>('daily');
+  const [reminderTime, setReminderTime] = useState(REMINDER_TIMES[0]);
+  const [requestingReminder, setRequestingReminder] = useState(false);
+
+  const enableReminder = async () => {
+    if (requestingReminder) return;
+    setRequestingReminder(true);
+    try {
+      // Requests the OS permission, then schedules everything on-device.
+      // Denied or blocked → move on quietly; it can be enabled in Profile.
+      await setPracticeReminder(true, {
+        frequency: reminderFrequency,
+        hour: reminderTime.hour,
+        minute: reminderTime.minute,
+      });
+    } finally {
+      setRequestingReminder(false);
+    }
+    setStep(3);
+  };
 
   const finish = (playFirst: boolean) => {
     completeOnboarding(mode, {
@@ -64,7 +97,7 @@ export default function OnboardingScreen() {
       >
         {/* Step dots */}
         <View style={{ flexDirection: 'row', gap: spacing.xs, justifyContent: 'center' }}>
-          {[0, 1, 2].map((i) => (
+          {[0, 1, 2, 3].map((i) => (
             <View
               key={i}
               style={{
@@ -193,6 +226,132 @@ export default function OnboardingScreen() {
         )}
 
         {step === 2 && (
+          <View style={{ gap: spacing.lg }}>
+            <Reveal index={0} exit>
+            <AppCard style={{ gap: spacing.md, alignItems: 'center', paddingVertical: spacing.xl }}>
+              <View
+                style={{
+                  width: 64,
+                  height: 64,
+                  borderRadius: 22,
+                  backgroundColor: colors.chipBlue,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Ionicons name="alarm-outline" size={32} color={colors.primary} />
+              </View>
+              <AppText variant="title" center>
+                Make it a routine
+              </AppText>
+              <AppText variant="body" color={colors.textSoft} center>
+                Practice sticks when it&apos;s regular. Want a nudge? Reminders are scheduled right
+                on this device — nothing is sent anywhere.
+              </AppText>
+            </AppCard>
+            </Reveal>
+
+            <Reveal index={1} exit>
+              <View style={{ gap: spacing.sm }}>
+                <AppText variant="caption" weight="semiBold" color={colors.textMuted}>
+                  HOW OFTEN
+                </AppText>
+                <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+                  {REMINDER_FREQUENCIES.map((freq) => {
+                    const active = reminderFrequency === freq.id;
+                    return (
+                      <Pressable
+                        key={freq.id}
+                        accessibilityRole="button"
+                        accessibilityLabel={`${freq.label}: ${freq.description}`}
+                        accessibilityState={{ selected: active }}
+                        onPress={() => {
+                          tapHaptic();
+                          setReminderFrequency(freq.id);
+                        }}
+                        style={{
+                          flex: 1,
+                          borderRadius: radius.button,
+                          borderWidth: 1.5,
+                          borderColor: active ? colors.primary : colors.border,
+                          backgroundColor: active ? colors.chipBlue : colors.card,
+                          padding: spacing.md,
+                          alignItems: 'center',
+                          gap: 2,
+                          minHeight: 64,
+                        }}
+                      >
+                        <AppText variant="body" weight="bold" color={active ? colors.primary : colors.text}>
+                          {freq.label}
+                        </AppText>
+                        <AppText variant="caption" color={colors.textSoft} center>
+                          {freq.description}
+                        </AppText>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </View>
+            </Reveal>
+
+            <Reveal index={2} exit>
+              <View style={{ gap: spacing.sm }}>
+                <AppText variant="caption" weight="semiBold" color={colors.textMuted}>
+                  WHAT TIME
+                </AppText>
+                <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+                  {REMINDER_TIMES.map((time) => {
+                    const active = reminderTime.label === time.label;
+                    return (
+                      <Pressable
+                        key={time.label}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Remind me in the ${time.label.toLowerCase()} at ${time.description}`}
+                        accessibilityState={{ selected: active }}
+                        onPress={() => {
+                          tapHaptic();
+                          setReminderTime(time);
+                        }}
+                        style={{
+                          flex: 1,
+                          borderRadius: radius.button,
+                          borderWidth: 1.5,
+                          borderColor: active ? colors.primary : colors.border,
+                          backgroundColor: active ? colors.chipBlue : colors.card,
+                          padding: spacing.md,
+                          alignItems: 'center',
+                          gap: 2,
+                          minHeight: 64,
+                        }}
+                      >
+                        <AppText variant="body" weight="bold" color={active ? colors.primary : colors.text}>
+                          {time.label}
+                        </AppText>
+                        <AppText variant="caption" color={colors.textSoft} center>
+                          {time.description}
+                        </AppText>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </View>
+            </Reveal>
+
+            <Reveal index={3} exit>
+              <AppButton
+                title="Remind Me"
+                icon="notifications-outline"
+                disabled={requestingReminder}
+                onPress={enableReminder}
+              />
+            </Reveal>
+            <Reveal index={4} exit>
+              <AppButton title="Maybe later" variant="ghost" onPress={() => setStep(3)} />
+            </Reveal>
+          </View>
+        )}
+
+        {step === 3 && (
           <View style={{ gap: spacing.lg }}>
             <Reveal index={0} exit>
             <AppCard style={{ gap: spacing.md, alignItems: 'center', paddingVertical: spacing.xl }}>

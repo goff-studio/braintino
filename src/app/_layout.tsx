@@ -15,6 +15,7 @@ import { initAnalytics, trackScreen } from '@/services/analytics/analytics';
 import { AppsFlyerService } from '@/services/attribution/AppsFlyerService';
 import { initAudio } from '@/services/audio/audio';
 import { AdService } from '@/services/monetization/AdService';
+import { initNotifications } from '@/services/notifications/notifications';
 import { useGameStore } from '@/store/useGameStore';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -32,6 +33,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     initAudio();
+    initNotifications();
     // Consent-aware boot: hydrate settings first so the stored "Analytics &
     // personalized content" choice gates Firebase and AppsFlyer from the very
     // first event. AdService.initialize() runs the single iOS ATT prompt at app
