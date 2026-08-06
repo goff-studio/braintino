@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Linking, Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { AppButton } from '@/components/AppButton';
 import { AppCard } from '@/components/AppCard';
 import { AppText } from '@/components/AppText';
@@ -15,6 +16,7 @@ import { rankForLevel } from '@/data/levels';
 import { useTheme } from '@/hooks/useTheme';
 import { tapHaptic } from '@/services/haptics/haptics';
 import { AdService } from '@/services/monetization/AdService';
+import { PurchaseService } from '@/services/monetization/PurchaseService';
 import { useGameStore } from '@/store/useGameStore';
 import type { DifficultyMode, ReminderFrequency } from '@/types/settings';
 
@@ -46,6 +48,42 @@ export default function ProfileScreen() {
   const resetAllProgress = useGameStore((s) => s.resetAllProgress);
   const [confirmingReset, setConfirmingReset] = useState(false);
   const [reminderBlocked, setReminderBlocked] = useState(false);
+
+  const adFree = useGameStore((s) => s.adFree);
+  const [adFreePrice, setAdFreePrice] = useState<string | null>(null);
+  const [purchaseBusy, setPurchaseBusy] = useState(false);
+  const [purchaseNote, setPurchaseNote] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (adFree || !PurchaseService.isAvailable()) return;
+    let cancelled = false;
+    PurchaseService.getAdFreePackage().then((pkg) => {
+      if (!cancelled && pkg) setAdFreePrice(pkg.product.priceString);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [adFree]);
+
+  const buyAdFree = async () => {
+    if (purchaseBusy) return;
+    setPurchaseBusy(true);
+    setPurchaseNote(null);
+    const outcome = await PurchaseService.purchaseAdFree();
+    if (outcome === 'failed') {
+      setPurchaseNote('Purchase didn’t go through. Nothing was charged — please try again.');
+    }
+    setPurchaseBusy(false);
+  };
+
+  const restoreAdFree = async () => {
+    if (purchaseBusy) return;
+    setPurchaseBusy(true);
+    setPurchaseNote(null);
+    const restored = await PurchaseService.restorePurchases();
+    if (!restored) setPurchaseNote('No previous purchase found for this store account.');
+    setPurchaseBusy(false);
+  };
 
   return (
     <ScreenBackground gradient={gradients.home}>
@@ -306,6 +344,50 @@ export default function ProfileScreen() {
         </Reveal>
 
         <Reveal index={7}>
+        <AppCard style={{ gap: spacing.sm }}>
+          <AppText variant="bodyLarge" weight="bold">
+            Ad-Free
+          </AppText>
+          {adFree ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+              <Ionicons name="checkmark-circle" size={22} color={colors.success} />
+              <AppText variant="body" color={colors.textSoft} style={{ flex: 1 }}>
+                You’re ad-free. Thank you for supporting Braintino!
+              </AppText>
+            </View>
+          ) : (
+            <>
+              <AppText variant="body" color={colors.textSoft}>
+                A whole year without ads, for the price of a coffee. Same app, same
+                training — just quieter.
+              </AppText>
+              <AppButton
+                title={`Go Ad-Free — ${adFreePrice ?? '$9.99'}/year`}
+                icon="sparkles-outline"
+                disabled={purchaseBusy || !PurchaseService.isAvailable()}
+                onPress={buyAdFree}
+              />
+              <AppButton
+                title="Restore purchase"
+                variant="ghost"
+                disabled={purchaseBusy}
+                onPress={restoreAdFree}
+              />
+              {purchaseNote && (
+                <AppText variant="caption" color={colors.textSoft} center>
+                  {purchaseNote}
+                </AppText>
+              )}
+              <AppText variant="caption" color={colors.textMuted}>
+                Yearly subscription, auto-renews until cancelled in your store account
+                settings.
+              </AppText>
+            </>
+          )}
+        </AppCard>
+        </Reveal>
+
+        <Reveal index={8}>
         <AppCard style={{ gap: spacing.md }}>
           <AppText variant="bodyLarge" weight="bold">
             Data
@@ -331,7 +413,7 @@ export default function ProfileScreen() {
         </AppCard>
         </Reveal>
 
-        <Reveal index={8}>
+        <Reveal index={9}>
         <AppCard style={{ gap: spacing.sm }}>
           <AppText variant="bodyLarge" weight="bold">
             About Braintino

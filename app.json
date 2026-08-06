@@ -43,7 +43,7 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#102A43",
+          "backgroundColor": "#F4F8FF",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 160
         }
@@ -73,6 +73,7 @@
           }
         }
       ],
+      "@react-native-firebase/crashlytics",
       [
         "react-native-google-mobile-ads",
         {
@@ -124,7 +125,8 @@
             "useFrameworks": "static",
             "forceStaticLinking": [
               "RNFBApp",
-              "RNFBAnalytics"
+              "RNFBAnalytics",
+              "RNFBCrashlytics"
             ]
           }
         }

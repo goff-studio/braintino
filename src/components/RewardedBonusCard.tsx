@@ -22,10 +22,14 @@ type Phase = 'idle' | 'showing' | 'earned' | 'unavailable';
 export function RewardedBonusCard() {
   const { colors } = useTheme();
   const grantBonusXp = useGameStore((s) => s.grantBonusXp);
+  const adFree = useGameStore((s) => s.adFree);
   const [ready, setReady] = useState(AdService.isRewardedReady());
   const [phase, setPhase] = useState<Phase>('idle');
 
   useEffect(() => AdService.onRewardedReady(setReady), []);
+
+  // Ad-free subscribers see no ad placements at all, including opt-in ones.
+  if (adFree) return null;
 
   const watch = async () => {
     setPhase('showing');

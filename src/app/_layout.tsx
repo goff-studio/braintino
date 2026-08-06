@@ -15,6 +15,7 @@ import { initAnalytics, trackScreen } from '@/services/analytics/analytics';
 import { AppsFlyerService } from '@/services/attribution/AppsFlyerService';
 import { initAudio } from '@/services/audio/audio';
 import { AdService } from '@/services/monetization/AdService';
+import { PurchaseService } from '@/services/monetization/PurchaseService';
 import { initNotifications } from '@/services/notifications/notifications';
 import { useGameStore } from '@/store/useGameStore';
 
@@ -46,7 +47,11 @@ export default function RootLayout() {
         const { analyticsEnabled } = useGameStore.getState().settings;
         initAnalytics(analyticsEnabled);
         AppsFlyerService.initialize(analyticsEnabled);
-        AdService.initialize();
+        PurchaseService.initialize();
+        // Ad-free subscribers skip the whole ad stack (including the iOS ATT
+        // prompt). Show-time checks still guard the mid-session flip; an
+        // expired subscription re-enables ads on the next launch.
+        if (!useGameStore.getState().adFree) AdService.initialize();
       });
   }, []);
 

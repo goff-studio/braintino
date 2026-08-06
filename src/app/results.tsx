@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
+import * as WebBrowser from 'expo-web-browser';
 import React, { useEffect, useMemo } from 'react';
-import { ScrollView, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { AnimatedNumber } from '@/components/AnimatedNumber';
@@ -15,6 +16,7 @@ import { SkillChip } from '@/components/SkillChip';
 import { StatPill } from '@/components/StatPill';
 import { gradients } from '@/constants/colors';
 import { spacing } from '@/constants/spacing';
+import { getDailyFact } from '@/data/facts';
 import { MINI_GAMES } from '@/data/miniGames';
 import { difficultyChangeMessage } from '@/game/engines/difficulty';
 import { consistencyLabel, createFriendlyFeedback } from '@/game/engines/scoring';
@@ -43,6 +45,10 @@ export default function ResultsScreen() {
   const nextGameId = session && !sessionDone ? session.plan[session.index + 1] : null;
   const dailyComplete = isDaily && sessionDone;
   const totals = useMemo(() => (session ? sessionTotals(session) : null), [session]);
+  const dailyFact = useMemo(
+    () => (dailyComplete && session ? getDailyFact(session.dateKey) : null),
+    [dailyComplete, session]
+  );
 
   useEffect(() => {
     playSound(dailyComplete ? 'daily' : 'complete');
@@ -219,13 +225,43 @@ export default function ResultsScreen() {
           </Reveal>
         )}
 
-        {dailyComplete && (
+        {dailyFact && (
           <Reveal index={4}>
+          <AppCard style={{ gap: spacing.sm }}>
+            <AppText
+              variant="caption"
+              weight="semiBold"
+              color={colors.textMuted}
+              style={{ letterSpacing: 1.2 }}
+            >
+              DID YOU KNOW
+            </AppText>
+            <AppText variant="body" color={colors.text}>
+              {dailyFact.fact}
+            </AppText>
+            <Pressable
+              accessibilityRole="link"
+              accessibilityLabel={`Read the source: ${dailyFact.source}`}
+              onPress={() => WebBrowser.openBrowserAsync(dailyFact.link).catch(() => {})}
+              hitSlop={8}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}
+            >
+              <Ionicons name="open-outline" size={14} color={colors.primary} />
+              <AppText variant="caption" color={colors.primary} style={{ flex: 1 }}>
+                {dailyFact.source}
+              </AppText>
+            </Pressable>
+          </AppCard>
+          </Reveal>
+        )}
+
+        {dailyComplete && (
+          <Reveal index={5}>
             <RewardedBonusCard />
           </Reveal>
         )}
 
-        <Reveal index={5} style={{ gap: spacing.md }}>
+        <Reveal index={6} style={{ gap: spacing.md }}>
           {nextGameId ? (
             <>
               <AppButton

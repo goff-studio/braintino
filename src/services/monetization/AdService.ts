@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 import { admob, interstitialUnitId, rewardedUnitId, TEST_DEVICE_IDS } from './admob';
+import { PurchaseService } from './PurchaseService';
 import type { MonetizationPlacement } from './types';
 
 type AdMobModule = NonNullable<ReturnType<typeof admob>>;
@@ -227,6 +228,8 @@ class AdServiceImpl {
     /** Date key of the session that triggered the placement. */
     dateKey: string;
   }): Promise<void> {
+    // Ad-free subscribers never see the interstitial, regardless of caps.
+    if (PurchaseService.isAdFree()) return;
     if (opts.totalSessions < MIN_SESSIONS_FOR_ADS) return;
     if (this.lastInterstitialDate === opts.dateKey) return;
     const shown = await this.showInterstitial();

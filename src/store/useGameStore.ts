@@ -13,6 +13,7 @@ import {
 import { setAnalyticsConsent } from '@/services/analytics/analytics';
 import { AppsFlyerService } from '@/services/attribution/AppsFlyerService';
 import { setSoundEnabled } from '@/services/audio/audio';
+import { PurchaseService } from '@/services/monetization/PurchaseService';
 import { setHapticsEnabled } from '@/services/haptics/haptics';
 import {
   cancelReminder,
@@ -43,6 +44,8 @@ function initialMiniGameProgress(level: number): MiniGameProgress {
 
 type GameStore = {
   hydrated: boolean;
+  /** Ad-free entitlement (RevenueCat); cached verdict at boot, live after. */
+  adFree: boolean;
   progress: PlayerProgress;
   settings: PlayerSettings;
   session: SessionState | null;
@@ -79,6 +82,7 @@ type GameStore = {
 
 export const useGameStore = create<GameStore>((set, get) => ({
   hydrated: false,
+  adFree: false,
   progress: storage.createDefaultProgress(),
   settings: defaultSettings,
   session: null,
@@ -90,9 +94,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
     // new scale using the player's difficulty mode.
     const settings = await storage.loadSettings();
     const progress = await storage.loadProgress(settings.difficultyMode);
+    // Cached entitlement verdict first (sync ad gating at boot); the
+    // subscription keeps the store current once RevenueCat configures.
+    const adFree = await PurchaseService.loadCachedAdFree();
+    PurchaseService.subscribe((value) => set({ adFree: value }));
     setSoundEnabled(settings.soundEnabled);
     setHapticsEnabled(settings.hapticsEnabled);
-    set({ progress, settings, hydrated: true });
+    set({ progress, settings, adFree, hydrated: true });
     // Reconcile the local reminder schedule with settings: refreshes the
     // rolling every-other-day window and catches a permission revoked in
     // system Settings since last launch.
