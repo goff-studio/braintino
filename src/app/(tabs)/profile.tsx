@@ -1,3 +1,4 @@
+import * as WebBrowser from 'expo-web-browser';
 import React, { useEffect, useState } from 'react';
 import { Linking, Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -25,6 +26,13 @@ const DIFFICULTY_MODES: { id: DifficultyMode; label: string; description: string
   { id: 'balanced', label: 'Balanced', description: 'The standard pace' },
   { id: 'challenging', label: 'Challenging', description: 'Faster pace, higher demand' },
 ];
+
+// Required by App Store Guideline 3.1.2: the subscription purchase flow must
+// link to both documents, and the EULA link must also appear in the App Store
+// description (standard Apple EULA).
+const PRIVACY_POLICY_URL =
+  'https://glimmer-locket-654.notion.site/Privacy-Policy-for-Braintino-393bc9cb57128085877fe98d8a4295e5';
+const TERMS_OF_USE_URL = 'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/';
 
 const REMINDER_FREQUENCIES: { id: ReminderFrequency; label: string; description: string }[] = [
   { id: 'daily', label: 'Daily', description: 'Every day' },
@@ -384,6 +392,28 @@ export default function ProfileScreen() {
               </AppText>
             </>
           )}
+          <View style={{ flexDirection: 'row', justifyContent: 'center', gap: spacing.xl }}>
+            <Pressable
+              accessibilityRole="link"
+              accessibilityLabel="Privacy Policy"
+              hitSlop={8}
+              onPress={() => WebBrowser.openBrowserAsync(PRIVACY_POLICY_URL).catch(() => {})}
+            >
+              <AppText variant="caption" color={colors.primary}>
+                Privacy Policy
+              </AppText>
+            </Pressable>
+            <Pressable
+              accessibilityRole="link"
+              accessibilityLabel="Terms of Use"
+              hitSlop={8}
+              onPress={() => WebBrowser.openBrowserAsync(TERMS_OF_USE_URL).catch(() => {})}
+            >
+              <AppText variant="caption" color={colors.primary}>
+                Terms of Use (EULA)
+              </AppText>
+            </Pressable>
+          </View>
         </AppCard>
         </Reveal>
 
