@@ -228,7 +228,7 @@ class AdServiceImpl {
     /** Date key of the session that triggered the placement. */
     dateKey: string;
   }): Promise<void> {
-    // Ad-free subscribers never see the interstitial, regardless of caps.
+    // Ad-free purchasers never see the interstitial, regardless of caps.
     if (PurchaseService.isAdFree()) return;
     if (opts.totalSessions < MIN_SESSIONS_FOR_ADS) return;
     if (this.lastInterstitialDate === opts.dateKey) return;

@@ -27,9 +27,10 @@ const DIFFICULTY_MODES: { id: DifficultyMode; label: string; description: string
   { id: 'challenging', label: 'Challenging', description: 'Faster pace, higher demand' },
 ];
 
-// Required by App Store Guideline 3.1.2: the subscription purchase flow must
-// link to both documents, and the EULA link must also appear in the App Store
-// description (standard Apple EULA).
+// The purchase flow links to both documents (standard Apple EULA). The
+// ad-free product is a one-time non-consumable — Apple rejected the previous
+// auto-renewing subscription under Guideline 3.1.2 (ad removal alone isn't
+// "ongoing value"), so it must not be reintroduced as a subscription.
 const PRIVACY_POLICY_URL =
   'https://glimmer-locket-654.notion.site/Privacy-Policy-for-Braintino-393bc9cb57128085877fe98d8a4295e5';
 const TERMS_OF_USE_URL = 'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/';
@@ -366,11 +367,11 @@ export default function ProfileScreen() {
           ) : (
             <>
               <AppText variant="body" color={colors.textSoft}>
-                A whole year without ads, for the price of a coffee. Same app, same
+                Pay once, and Braintino stays ad-free forever. Same app, same
                 training — just quieter.
               </AppText>
               <AppButton
-                title={`Go Ad-Free — ${adFreePrice ?? '$9.99'}/year`}
+                title={`Go Ad-Free — ${adFreePrice ?? '$9.99'}`}
                 icon="sparkles-outline"
                 disabled={purchaseBusy || !PurchaseService.isAvailable()}
                 onPress={buyAdFree}
@@ -387,8 +388,7 @@ export default function ProfileScreen() {
                 </AppText>
               )}
               <AppText variant="caption" color={colors.textMuted}>
-                Yearly subscription, auto-renews until cancelled in your store account
-                settings.
+                One-time purchase — no subscription, nothing renews.
               </AppText>
             </>
           )}

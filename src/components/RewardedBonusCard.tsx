@@ -28,7 +28,7 @@ export function RewardedBonusCard() {
 
   useEffect(() => AdService.onRewardedReady(setReady), []);
 
-  // Ad-free subscribers see no ad placements at all, including opt-in ones.
+  // Ad-free purchasers see no ad placements at all, including opt-in ones.
   if (adFree) return null;
 
   const watch = async () => {

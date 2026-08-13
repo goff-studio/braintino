@@ -94,8 +94,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
     // new scale using the player's difficulty mode.
     const settings = await storage.loadSettings();
     const progress = await storage.loadProgress(settings.difficultyMode);
-    // Cached entitlement verdict first (sync ad gating at boot); the
-    // subscription keeps the store current once RevenueCat configures.
+    // Cached entitlement verdict first (sync ad gating at boot); the change
+    // listener keeps the store current once RevenueCat configures.
     const adFree = await PurchaseService.loadCachedAdFree();
     PurchaseService.subscribe((value) => set({ adFree: value }));
     setSoundEnabled(settings.soundEnabled);

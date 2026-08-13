@@ -7,9 +7,14 @@ import type PurchasesType from 'react-native-purchases';
 import type { PurchasesPackage } from 'react-native-purchases';
 
 /**
- * Ad-free subscription via RevenueCat. Same facade rules as AdService: UI
- * calls this service only, and with no native module (Expo Go / web) every
- * method is an inert no-op reporting "not ad-free".
+ * One-time ad-free purchase (non-consumable, "lifetime") via RevenueCat. Same
+ * facade rules as AdService: UI calls this service only, and with no native
+ * module (Expo Go / web) every method is an inert no-op reporting "not
+ * ad-free".
+ *
+ * Deliberately NOT an auto-renewing subscription: Apple rejected that under
+ * Guideline 3.1.2 (ad removal alone isn't "ongoing value"), so the product
+ * must stay a one-time purchase.
  *
  * RevenueCat setup (project "Techtory Games"): the offering is fetched by
  * IDENTIFIER, never `offerings.current` — the project is shared with other
@@ -99,13 +104,13 @@ class PurchaseServiceImpl {
     }
   }
 
-  /** The yearly ad-free package (with localized price), or null when absent. */
+  /** The one-time ad-free package (with localized price), or null when absent. */
   async getAdFreePackage(): Promise<PurchasesPackage | null> {
     if (!this.mod) return null;
     try {
       const offerings = await this.mod.getOfferings();
       const offering = offerings.all[OFFERING_ID];
-      return offering?.annual ?? offering?.availablePackages[0] ?? null;
+      return offering?.lifetime ?? offering?.availablePackages[0] ?? null;
     } catch (e) {
       if (__DEV__) console.warn('[Purchases] getOfferings failed', e);
       return null;

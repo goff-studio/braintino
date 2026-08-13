@@ -48,9 +48,9 @@ export default function RootLayout() {
         initAnalytics(analyticsEnabled);
         AppsFlyerService.initialize(analyticsEnabled);
         PurchaseService.initialize();
-        // Ad-free subscribers skip the whole ad stack (including the iOS ATT
-        // prompt). Show-time checks still guard the mid-session flip; an
-        // expired subscription re-enables ads on the next launch.
+        // Ad-free purchasers skip the whole ad stack (including the iOS ATT
+        // prompt). Show-time checks still guard the mid-session flip (e.g. a
+        // refunded purchase re-enables ads on the next launch).
         if (!useGameStore.getState().adFree) AdService.initialize();
       });
   }, []);
