@@ -8,6 +8,7 @@ import { AnimatedNumber } from '@/components/AnimatedNumber';
 import { AppButton } from '@/components/AppButton';
 import { AppCard } from '@/components/AppCard';
 import { AppText } from '@/components/AppText';
+import { RateAppCard } from '@/components/RateAppCard';
 import { Reveal } from '@/components/Reveal';
 import { RewardedBonusCard } from '@/components/RewardedBonusCard';
 import { ScreenBackground } from '@/components/ScreenBackground';
@@ -257,11 +258,17 @@ export default function ResultsScreen() {
 
         {dailyComplete && (
           <Reveal index={5}>
+            <RateAppCard />
+          </Reveal>
+        )}
+
+        {dailyComplete && (
+          <Reveal index={6}>
             <RewardedBonusCard />
           </Reveal>
         )}
 
-        <Reveal index={6} style={{ gap: spacing.md }}>
+        <Reveal index={7} style={{ gap: spacing.md }}>
           {nextGameId ? (
             <>
               <AppButton
