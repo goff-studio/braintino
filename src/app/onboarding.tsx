@@ -40,7 +40,6 @@ export default function OnboardingScreen() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const completeOnboarding = useGameStore((s) => s.completeOnboarding);
-  const startPracticeSession = useGameStore((s) => s.startPracticeSession);
   const setPracticeReminder = useGameStore((s) => s.setPracticeReminder);
 
   const [step, setStep] = useState(0);
@@ -69,18 +68,15 @@ export default function OnboardingScreen() {
     setStep(3);
   };
 
-  const finish = (playFirst: boolean) => {
+  const finish = (calibrate: boolean) => {
     completeOnboarding(mode, {
       biggerText,
       reducedMotion: reduceMotionPref,
       highContrast,
     });
-    if (playFirst) {
-      startPracticeSession('focus_flash');
-      router.replace('/play/focus_flash');
-    } else {
-      router.replace('/(tabs)');
-    }
+    // The warm-up staircase seeds the starting level; skipping keeps the
+    // mode baseline and lets the placement-phase adaptation catch up.
+    router.replace(calibrate ? '/calibration' : '/(tabs)');
   };
 
   return (
@@ -368,19 +364,19 @@ export default function OnboardingScreen() {
                 <Ionicons name="flash-outline" size={32} color={colors.primary} />
               </View>
               <AppText variant="title" center>
-                Start with a 1-minute warm-up
+                Find your level
               </AppText>
               <AppText variant="body" color={colors.textSoft} center>
-                A quick processing-speed exercise establishes your starting level. Accuracy matters
-                more than speed.
+                A 90-second warm-up of short bursts that get harder while you keep up. Where you
+                settle is where your training starts — so day one is already at your level.
               </AppText>
             </AppCard>
             </Reveal>
             <Reveal index={1} exit>
-              <AppButton title="Start First Exercise" icon="play" onPress={() => finish(true)} />
+              <AppButton title="Find My Level" icon="play" onPress={() => finish(true)} />
             </Reveal>
             <Reveal index={2} exit>
-              <AppButton title="Explore the app first" variant="ghost" onPress={() => finish(false)} />
+              <AppButton title="Skip for now" variant="ghost" onPress={() => finish(false)} />
             </Reveal>
           </View>
         )}

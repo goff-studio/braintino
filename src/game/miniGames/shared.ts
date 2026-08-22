@@ -9,6 +9,8 @@ export type MiniGameProps = {
   onComplete: (summary: RoundsSummary) => void;
   /** Reports the current round (1-based) so the header can show progress. */
   onRoundChange?: (round: number) => void;
+  /** Override the configured rounds per session (calibration's short bursts). */
+  roundCount?: number;
 };
 
 /**

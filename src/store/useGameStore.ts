@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { gameConfig } from '@/constants/gameConfig';
 import { checkNewBadges, type BadgeDef } from '@/data/badges';
 import { applyXp } from '@/data/levels';
 import { getTodayDailyPlan } from '@/game/engines/dailyTraining';
@@ -10,7 +11,7 @@ import {
   isSessionComplete,
   recordResult,
 } from '@/game/engines/session';
-import { setAnalyticsConsent } from '@/services/analytics/analytics';
+import { setAnalyticsConsent, trackEvent } from '@/services/analytics/analytics';
 import { AppsFlyerService } from '@/services/attribution/AppsFlyerService';
 import { setSoundEnabled } from '@/services/audio/audio';
 import { PurchaseService } from '@/services/monetization/PurchaseService';
@@ -67,6 +68,12 @@ type GameStore = {
   /** Change reminder frequency/time; reschedules if the reminder is on. */
   updateReminderConfig: (config: ReminderConfig) => void;
   completeOnboarding: (mode: DifficultyMode, prefs: Partial<PlayerSettings>) => void;
+  /**
+   * Seed the starting level from the onboarding warm-up staircase: the
+   * calibrated exercise starts at the placement, every other exercise
+   * inherits it via getStartingLevel on first play.
+   */
+  completeCalibration: (placement: number, blocksPlayed: number) => void;
 
   startDailySession: () => SessionState;
   startPracticeSession: (gameId: MiniGameId) => SessionState;
@@ -179,6 +186,30 @@ export const useGameStore = create<GameStore>((set, get) => ({
     });
   },
 
+  completeCalibration: (placement, blocksPlayed) => {
+    const state = get();
+    const progress: PlayerProgress = {
+      ...state.progress,
+      miniGameProgress: { ...state.progress.miniGameProgress },
+    };
+    const gameId = gameConfig.calibration.gameId;
+    const existing = progress.miniGameProgress[gameId];
+    // Never lower a level that real play has already established.
+    progress.miniGameProgress[gameId] = existing
+      ? { ...existing, level: Math.max(existing.level, placement) }
+      : initialMiniGameProgress(placement);
+    const leveled = applyXp(progress.globalLevel, progress.xp, gameConfig.calibration.xpReward);
+    progress.globalLevel = leveled.level;
+    progress.xp = leveled.xp;
+    set({ progress });
+    storage.saveProgress(progress);
+    trackEvent('calibration_completed', {
+      placement_level: placement,
+      blocks: blocksPlayed,
+      mode: state.settings.difficultyMode,
+    });
+  },
+
   startDailySession: () => {
     const today = todayKey();
     const plan = getTodayDailyPlan(today, get().progress);
@@ -213,7 +244,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
       mg.level,
       result,
       mg.lastResults,
-      state.settings.difficultyMode
+      state.settings.difficultyMode,
+      mg.sessionsPlayed
     );
     const enriched: MiniGameResult = {
       ...result,

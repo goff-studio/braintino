@@ -71,6 +71,7 @@ export default function RootLayout() {
       <Stack screenOptions={{ headerShown: false, animation: 'fade' }}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="onboarding" />
+        <Stack.Screen name="calibration" options={{ gestureEnabled: false }} />
         <Stack.Screen name="daily" />
         <Stack.Screen name="play/[gameId]" options={{ gestureEnabled: false }} />
         <Stack.Screen name="results" options={{ gestureEnabled: false }} />

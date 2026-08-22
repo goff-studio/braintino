@@ -1,13 +1,13 @@
 import { useRouter } from 'expo-router';
-import * as WebBrowser from 'expo-web-browser';
-import React, { useEffect, useMemo } from 'react';
-import { Pressable, ScrollView, View } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import { ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { AnimatedNumber } from '@/components/AnimatedNumber';
 import { AppButton } from '@/components/AppButton';
 import { AppCard } from '@/components/AppCard';
 import { AppText } from '@/components/AppText';
+import { DidYouKnowCard } from '@/components/DidYouKnowCard';
 import { RateAppCard } from '@/components/RateAppCard';
 import { Reveal } from '@/components/Reveal';
 import { RewardedBonusCard } from '@/components/RewardedBonusCard';
@@ -29,10 +29,17 @@ import { AdService } from '@/services/monetization/AdService';
 import { useGameStore } from '@/store/useGameStore';
 import type { SkillType } from '@/types/game';
 
+/**
+ * How long the fact of the day holds the screen on its own before the rest of
+ * the results cascade in — long enough to actually read it, short enough that
+ * it never feels like a gate.
+ */
+const FACT_HOLD_MS = 3000;
+
 export default function ResultsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { colors } = useTheme();
+  const { colors, reducedMotion } = useTheme();
   const result = useGameStore((s) => s.lastResult);
   const session = useGameStore((s) => s.session);
   const progress = useGameStore((s) => s.progress);
@@ -50,6 +57,16 @@ export default function ResultsScreen() {
     () => (dailyComplete && session ? getDailyFact(session.dateKey) : null),
     [dailyComplete, session]
   );
+
+  // The fact leads the screen — it enters on its own, and the results follow a
+  // beat later. Reduced motion skips the hold and shows everything at once.
+  const [showResults, setShowResults] = useState(!dailyFact || reducedMotion);
+
+  useEffect(() => {
+    if (!dailyFact || reducedMotion) return;
+    const timer = setTimeout(() => setShowResults(true), FACT_HOLD_MS);
+    return () => clearTimeout(timer);
+  }, [dailyFact, reducedMotion]);
 
   useEffect(() => {
     playSound(dailyComplete ? 'daily' : 'complete');
@@ -110,194 +127,170 @@ export default function ResultsScreen() {
           </AppText>
         </Reveal>
 
-        <Reveal index={1}>
-        <AppCard style={{ alignItems: 'center', gap: spacing.md, paddingVertical: spacing.xl }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-            <Ionicons name={config.icon as keyof typeof Ionicons.glyphMap} size={20} color={config.color} />
-            <AppText variant="bodyLarge" weight="bold">
-              {config.title}
-            </AppText>
-          </View>
-          <SessionRating rating={result.stars ?? 1} animated />
+        {dailyFact && <DidYouKnowCard fact={dailyFact} />}
 
-          <View style={{ flexDirection: 'row', gap: spacing.xxl, marginTop: spacing.sm }}>
-            <View style={{ alignItems: 'center' }}>
-              <AnimatedNumber
-                value={Math.round(result.accuracy * 100)}
-                suffix="%"
-                variant="heading"
-                color={colors.primary}
-              />
-              <AppText variant="caption" color={colors.textSoft}>
-                Accuracy
+        {showResults && (
+          <>
+          <Reveal index={1}>
+          <AppCard style={{ alignItems: 'center', gap: spacing.md, paddingVertical: spacing.xl }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+              <Ionicons name={config.icon as keyof typeof Ionicons.glyphMap} size={20} color={config.color} />
+              <AppText variant="bodyLarge" weight="bold">
+                {config.title}
               </AppText>
             </View>
-            <View style={{ alignItems: 'center' }}>
-              <AnimatedNumber value={result.practiceScore} variant="heading" color={colors.text} />
-              <AppText variant="caption" color={colors.textSoft}>
-                Practice Score
-              </AppText>
-            </View>
-            <View style={{ alignItems: 'center' }}>
-              <AnimatedNumber value={result.xp} prefix="+" variant="heading" color={colors.textSoft} />
-              <AppText variant="caption" color={colors.textSoft}>
-                XP
-              </AppText>
-            </View>
-          </View>
+            <SessionRating rating={result.stars ?? 1} animated />
 
-          <View style={{ flexDirection: 'row', gap: spacing.sm, flexWrap: 'wrap', justifyContent: 'center' }}>
-            <StatPill
-              icon="pulse-outline"
-              value={consistencyLabel(result.consistency)}
-              accessibilityLabel={`Response consistency: ${consistencyLabel(result.consistency)}`}
-            />
-            {result.isPersonalBest && (
-              <StatPill icon="ribbon-outline" value="New personal best" variant="lime" />
-            )}
-          </View>
-
-          {difficultyNote && (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
-              <Ionicons
-                name={result.difficultyDelta! > 0 ? 'arrow-up' : 'arrow-down'}
-                size={14}
-                color={result.difficultyDelta! > 0 ? colors.success : colors.textSoft}
-              />
-              <AppText variant="caption" color={colors.textSoft}>
-                {difficultyNote}
-              </AppText>
-            </View>
-          )}
-
-          <View style={{ flexDirection: 'row', gap: spacing.sm, flexWrap: 'wrap', justifyContent: 'center' }}>
-            {skills.map((skill) => (
-              <SkillChip key={skill} skill={skill} />
-            ))}
-          </View>
-        </AppCard>
-        </Reveal>
-
-        {lastEarnedBadges.length > 0 && (
-          <Reveal index={2}>
-          <AppCard style={{ gap: spacing.sm }}>
-            <AppText variant="bodyLarge" weight="bold">
-              Milestone reached
-            </AppText>
-            {lastEarnedBadges.map((badge) => (
-              <View key={badge.id} style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-                <Ionicons
-                  name={badge.icon as keyof typeof Ionicons.glyphMap}
-                  size={18}
-                  color={colors.success}
+            <View style={{ flexDirection: 'row', gap: spacing.xxl, marginTop: spacing.sm }}>
+              <View style={{ alignItems: 'center' }}>
+                <AnimatedNumber
+                  value={Math.round(result.accuracy * 100)}
+                  suffix="%"
+                  variant="heading"
+                  color={colors.primary}
                 />
-                <AppText variant="body" weight="semiBold">
-                  {badge.title}
-                </AppText>
-                <AppText variant="caption" color={colors.textMuted}>
-                  {badge.description}
+                <AppText variant="caption" color={colors.textSoft}>
+                  Accuracy
                 </AppText>
               </View>
-            ))}
-          </AppCard>
-          </Reveal>
-        )}
-
-        {dailyComplete && totals && (
-          <Reveal index={3}>
-          <AppCard style={{ gap: spacing.sm, alignItems: 'center' }}>
-            <AppText variant="bodyLarge" weight="bold">
-              Today’s Session
-            </AppText>
-            <View style={{ flexDirection: 'row', gap: spacing.sm, flexWrap: 'wrap', justifyContent: 'center' }}>
-              <StatPill icon="checkmark-done-outline" value={`${session!.results.length} exercises`} />
-              <StatPill icon="flash-outline" value={`+${totals.xp} XP`} />
-              <StatPill
-                icon="flame-outline"
-                value={`${progress.streak}-day streak`}
-                variant="lime"
-                accessibilityLabel={`${progress.streak}-day streak`}
-              />
+              <View style={{ alignItems: 'center' }}>
+                <AnimatedNumber value={result.practiceScore} variant="heading" color={colors.text} />
+                <AppText variant="caption" color={colors.textSoft}>
+                  Practice Score
+                </AppText>
+              </View>
+              <View style={{ alignItems: 'center' }}>
+                <AnimatedNumber value={result.xp} prefix="+" variant="heading" color={colors.textSoft} />
+                <AppText variant="caption" color={colors.textSoft}>
+                  XP
+                </AppText>
+              </View>
             </View>
-            <AppText variant="body" color={colors.textSoft} center>
-              Steady work. Come back tomorrow to keep the streak going.
-            </AppText>
-          </AppCard>
-          </Reveal>
-        )}
 
-        {dailyFact && (
-          <Reveal index={4}>
-          <AppCard style={{ gap: spacing.sm }}>
-            <AppText
-              variant="caption"
-              weight="semiBold"
-              color={colors.textMuted}
-              style={{ letterSpacing: 1.2 }}
-            >
-              DID YOU KNOW
-            </AppText>
-            <AppText variant="body" color={colors.text}>
-              {dailyFact.fact}
-            </AppText>
-            <Pressable
-              accessibilityRole="link"
-              accessibilityLabel={`Read the source: ${dailyFact.source}`}
-              onPress={() => WebBrowser.openBrowserAsync(dailyFact.link).catch(() => {})}
-              hitSlop={8}
-              style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}
-            >
-              <Ionicons name="open-outline" size={14} color={colors.primary} />
-              <AppText variant="caption" color={colors.primary} style={{ flex: 1 }}>
-                {dailyFact.source}
-              </AppText>
-            </Pressable>
-          </AppCard>
-          </Reveal>
-        )}
-
-        {dailyComplete && (
-          <Reveal index={5}>
-            <RateAppCard />
-          </Reveal>
-        )}
-
-        {dailyComplete && (
-          <Reveal index={6}>
-            <RewardedBonusCard />
-          </Reveal>
-        )}
-
-        <Reveal index={7} style={{ gap: spacing.md }}>
-          {nextGameId ? (
-            <>
-              <AppButton
-                title={`Next: ${MINI_GAMES[nextGameId].title}`}
-                icon="arrow-forward"
-                onPress={() => {
-                  advanceToNextGame();
-                  router.replace(`/play/${nextGameId}`);
-                }}
+            <View style={{ flexDirection: 'row', gap: spacing.sm, flexWrap: 'wrap', justifyContent: 'center' }}>
+              <StatPill
+                icon="pulse-outline"
+                value={consistencyLabel(result.consistency)}
+                accessibilityLabel={`Response consistency: ${consistencyLabel(result.consistency)}`}
               />
-              <AppButton title="Finish for now" variant="ghost" onPress={goHome} />
-            </>
-          ) : (
-            <>
-              {!isDaily && (
+              {result.isPersonalBest && (
+                <StatPill icon="ribbon-outline" value="New personal best" variant="lime" />
+              )}
+            </View>
+
+            {difficultyNote && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
+                <Ionicons
+                  name={result.difficultyDelta! > 0 ? 'arrow-up' : 'arrow-down'}
+                  size={14}
+                  color={result.difficultyDelta! > 0 ? colors.success : colors.textSoft}
+                />
+                <AppText variant="caption" color={colors.textSoft}>
+                  {difficultyNote}
+                </AppText>
+              </View>
+            )}
+
+            <View style={{ flexDirection: 'row', gap: spacing.sm, flexWrap: 'wrap', justifyContent: 'center' }}>
+              {skills.map((skill) => (
+                <SkillChip key={skill} skill={skill} />
+              ))}
+            </View>
+          </AppCard>
+          </Reveal>
+
+          {lastEarnedBadges.length > 0 && (
+            <Reveal index={2}>
+            <AppCard style={{ gap: spacing.sm }}>
+              <AppText variant="bodyLarge" weight="bold">
+                Milestone reached
+              </AppText>
+              {lastEarnedBadges.map((badge) => (
+                <View key={badge.id} style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+                  <Ionicons
+                    name={badge.icon as keyof typeof Ionicons.glyphMap}
+                    size={18}
+                    color={colors.success}
+                  />
+                  <AppText variant="body" weight="semiBold">
+                    {badge.title}
+                  </AppText>
+                  <AppText variant="caption" color={colors.textMuted}>
+                    {badge.description}
+                  </AppText>
+                </View>
+              ))}
+            </AppCard>
+            </Reveal>
+          )}
+
+          {dailyComplete && totals && (
+            <Reveal index={3}>
+            <AppCard style={{ gap: spacing.sm, alignItems: 'center' }}>
+              <AppText variant="bodyLarge" weight="bold">
+                Today’s Session
+              </AppText>
+              <View style={{ flexDirection: 'row', gap: spacing.sm, flexWrap: 'wrap', justifyContent: 'center' }}>
+                <StatPill icon="checkmark-done-outline" value={`${session!.results.length} exercises`} />
+                <StatPill icon="flash-outline" value={`+${totals.xp} XP`} />
+                <StatPill
+                  icon="flame-outline"
+                  value={`${progress.streak}-day streak`}
+                  variant="lime"
+                  accessibilityLabel={`${progress.streak}-day streak`}
+                />
+              </View>
+              <AppText variant="body" color={colors.textSoft} center>
+                Steady work. Come back tomorrow to keep the streak going.
+              </AppText>
+            </AppCard>
+            </Reveal>
+          )}
+
+          {dailyComplete && (
+            <Reveal index={4}>
+              <RateAppCard />
+            </Reveal>
+          )}
+
+          {dailyComplete && (
+            <Reveal index={5}>
+              <RewardedBonusCard />
+            </Reveal>
+          )}
+
+          <Reveal index={6} style={{ gap: spacing.md }}>
+            {nextGameId ? (
+              <>
                 <AppButton
-                  title="Repeat Exercise"
-                  icon="refresh"
-                  variant="secondary"
+                  title={`Next: ${MINI_GAMES[nextGameId].title}`}
+                  icon="arrow-forward"
                   onPress={() => {
-                    startPracticeSession(result.miniGameId);
-                    router.replace(`/play/${result.miniGameId}`);
+                    advanceToNextGame();
+                    router.replace(`/play/${nextGameId}`);
                   }}
                 />
-              )}
-              <AppButton title="Done" icon="checkmark" onPress={goHome} />
-            </>
-          )}
-        </Reveal>
+                <AppButton title="Finish for now" variant="ghost" onPress={goHome} />
+              </>
+            ) : (
+              <>
+                {!isDaily && (
+                  <AppButton
+                    title="Repeat Exercise"
+                    icon="refresh"
+                    variant="secondary"
+                    onPress={() => {
+                      startPracticeSession(result.miniGameId);
+                      router.replace(`/play/${result.miniGameId}`);
+                    }}
+                  />
+                )}
+                <AppButton title="Done" icon="checkmark" onPress={goHome} />
+              </>
+            )}
+          </Reveal>
+          </>
+        )}
       </ScrollView>
     </ScreenBackground>
   );

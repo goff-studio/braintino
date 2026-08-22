@@ -119,10 +119,10 @@ function Beam({ size }: { size: number }) {
   );
 }
 
-export function FocusFlash({ difficulty, paused, seed, onComplete, onRoundChange }: MiniGameProps) {
+export function FocusFlash({ difficulty, paused, seed, onComplete, onRoundChange, roundCount }: MiniGameProps) {
   const { width, height } = useWindowDimensions();
   const { fs, reducedMotion } = useTheme();
-  const totalRounds = gameConfig.roundsPerSession.focus_flash;
+  const totalRounds = roundCount ?? gameConfig.roundsPerSession.focus_flash;
   const tracker = useRoundTracker();
   const clock = useReactionClock(paused);
 

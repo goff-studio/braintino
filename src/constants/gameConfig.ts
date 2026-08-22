@@ -32,6 +32,12 @@ export const gameConfig = {
     softFloor: 0.55,
     maxLevel: 20,
     maxStep: 2,
+    /**
+     * An exercise's first plays climb in bigger steps, so a strong player
+     * reaches their real level in days instead of weeks. Calibration seeds
+     * the start; this fast-tracks whatever discovery remains.
+     */
+    placement: { sessions: 3, jump: 3, raise: 2 },
   },
 
   /** Difficulty modes: starting baseline, adaptive floor, and pacing modifiers. */
@@ -44,6 +50,28 @@ export const gameConfig = {
   /** Extra preview time on the play after a soft (0.55–0.69) round. */
   assist: {
     previewMultiplier: 1.15,
+  },
+
+  /**
+   * Onboarding warm-up staircase: short bursts of one exercise whose level
+   * jumps while the player is clean and fast, walks back on misses, and
+   * settles once the climb stalls. The settled level seeds every exercise's
+   * starting point (via getStartingLevel).
+   */
+  calibration: {
+    gameId: 'focus_flash',
+    roundsPerBlock: 3,
+    maxBlocks: 5,
+    /** Non-climbing bursts (hold/fail) that end the run. */
+    maxStalls: 2,
+    /** ~90 seconds of data never places above Advanced. */
+    maxPlacement: 12,
+    /** Level steps per burst outcome ('hold' steps 0). */
+    steps: { perfect: 3, solid: 1, fail: -2 },
+    /** Burst accuracy thresholds ('perfect' also requires the RT target). */
+    thresholds: { perfect: 0.99, solid: 0.8, hold: 0.6 },
+    /** Flat warm-up reward; calibration skips normal XP/badge scoring. */
+    xpReward: 30,
   },
 
   /** Practice Score weights — an app practice metric, not a health measure. */

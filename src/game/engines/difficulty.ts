@@ -130,26 +130,29 @@ export function getDifficultyForMiniGame(
  * Adaptive level progression. Strong sessions raise the level quickly
  * (+2 when accuracy and pace are both excellent), soft sessions get assisted
  * before dropping, and the level never falls below the mode's floor.
+ * An exercise's first plays (the placement phase) climb in bigger steps.
  */
 export function calculateNextLevel(
   currentLevel: number,
   result: MiniGameResult,
   recentResults: MiniGameResult[],
-  mode: DifficultyMode
+  mode: DifficultyMode,
+  sessionsPlayed: number = Number.POSITIVE_INFINITY
 ): number {
-  const { jump, raise, stableFloor, softFloor, maxLevel } = gameConfig.adaptive;
+  const { jump, raise, stableFloor, softFloor, maxLevel, placement } = gameConfig.adaptive;
   const { floor, thresholdShift } = gameConfig.modes[mode];
   const rtTarget = gameConfig.rtTargets[result.miniGameId];
   const fastEnough =
     result.reactionTimeMedian !== undefined
       ? result.reactionTimeMedian <= rtTarget
       : result.accuracy >= 0.97;
+  const inPlacement = sessionsPlayed < placement.sessions;
 
   let delta = 0;
   if (result.accuracy >= jump + thresholdShift && fastEnough) {
-    delta = 2;
+    delta = inPlacement ? placement.jump : 2;
   } else if (result.accuracy >= raise + thresholdShift) {
-    delta = 1;
+    delta = inPlacement ? placement.raise : 1;
   } else if (result.accuracy >= stableFloor) {
     delta = 0;
   } else if (result.accuracy >= softFloor) {
@@ -189,7 +192,8 @@ export function getStartingLevel(progress: PlayerProgress, mode: DifficultyMode)
 /** Adult, matter-of-fact copy for difficulty changes. */
 export function difficultyChangeMessage(previousLevel: number, nextLevel: number): string | null {
   const delta = nextLevel - previousLevel;
-  if (delta >= 2) return 'Strong session — moving up two levels';
+  if (delta >= 3) return 'Well above this level — jumping ahead';
+  if (delta === 2) return 'Strong session — moving up two levels';
   if (delta === 1) return 'Difficulty increased';
   if (delta <= -1) return 'Dialing back one level — accuracy first';
   return null;
