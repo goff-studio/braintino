@@ -14,6 +14,13 @@ export const ASSESSMENT_ID = gameConfig.assessment.id;
 export const ASSESSMENT_DISCLAIMER =
   'For entertainment and self-insight only. Not a medical, diagnostic, or clinical test — and not a measure of IQ, ADHD, or any health condition.';
 
+/** iPhone / Result footer (Figma 1:38). Entertainment only. */
+export const RESULT_SCREEN_DISCLAIMER =
+  'For entertainment and personal insight — not a medical or diagnostic test.';
+
+/** Share Card / 1080 footer (Figma 1:68). Field `disclaimer_short`. */
+export const RESULT_CARD_SHORT_DISCLAIMER = 'Entertainment only · Not medical advice';
+
 export function parseAssessmentSource(value: unknown): AssessmentSource {
   if (typeof value === 'string' && (ASSESSMENT_SOURCES as readonly string[]).includes(value)) {
     return value as AssessmentSource;
@@ -79,7 +86,7 @@ export function shareMessage(result: AssessmentResult): string {
 }
 
 /**
- * Ordered fields rendered on the placeholder share card.
+ * Ordered fields bound on the Figma share card / result.
  * Names are the ASO / Figma contract — do not rename without updating
  * `docs/assessment-result-card.md`. Values are entertainment-only.
  *
@@ -97,6 +104,6 @@ export function RESULT_CARD_FIELDS(result: AssessmentResult): { key: string; val
     { key: 'focus', value: String(result.focus) },
     { key: 'speed', value: String(result.speed) },
     { key: 'consistency', value: String(result.consistency) },
-    { key: 'disclaimer_short', value: 'Entertainment only · Not a diagnosis' },
+    { key: 'disclaimer_short', value: RESULT_CARD_SHORT_DISCLAIMER },
   ];
 }

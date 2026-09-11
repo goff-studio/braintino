@@ -1,6 +1,6 @@
 # Focus Snapshot result-card fields (issue #2)
 
-Visual layout is **placeholder only** until a Figma pass is reviewed. Do not treat the current result UI as listing art.
+In-app result matches Figma `iPhone / Result`. The share image matches Figma `Share Card / 1080`.
 
 These field names are the contract for ASO listing copy and the future share-card design. Share plumbing (`src/services/share/shareCard.ts`) captures whatever view is mounted as the card; swap the placeholder for the Figma card without renaming fields.
 
@@ -22,8 +22,8 @@ Rendered by `RESULT_CARD_FIELDS` in `src/game/engines/assessment.ts` and shown o
 | `focus` | number 0–100 | `82` | Cue accuracy on this run. |
 | `speed` | number 0–100 | `70` | Response-time score on this run. |
 | `consistency` | number 0–100 | `81` | Response-time steadiness on this run. |
-| `disclaimer_short` | string | `Entertainment only · Not a diagnosis` | Short card footer. |
-| `disclaimer` | string | see below | Full notice (also on intro / result). |
+| `disclaimer_short` | string | `Entertainment only · Not medical advice` | Share-card footer (Figma 1:68). |
+| `disclaimer` | string | see below | Full notice (intro). Result screen uses the shorter Figma footer. |
 
 Full disclaimer (`disclaimer`):
 

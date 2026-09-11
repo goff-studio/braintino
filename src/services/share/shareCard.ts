@@ -1,13 +1,19 @@
 import { Platform, Share } from 'react-native';
 import { captureRef, type CaptureOptions } from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
+import { SHARE_CARD_HEIGHT, SHARE_CARD_WIDTH } from '@/components/AssessmentShareCard';
 import { shareMessage } from '@/game/engines/assessment';
 import type { ShareMethod } from '@/services/analytics/assessmentEvents';
 import type { AssessmentResult } from '@/types/assessment';
 
 type ShotRef = Parameters<typeof captureRef>[0];
 
-const CAPTURE: CaptureOptions = { format: 'png', quality: 1 };
+const CAPTURE: CaptureOptions = {
+  format: 'png',
+  quality: 1,
+  width: 1080,
+  height: Math.round((1080 * SHARE_CARD_HEIGHT) / SHARE_CARD_WIDTH),
+};
 
 function dataUriToFile(dataUri: string, filename: string): File | null {
   try {
@@ -34,10 +40,8 @@ async function shareTextFallback(result: AssessmentResult): Promise<ShareMethod>
 /**
  * Share plumbing for the Focus Snapshot.
  *
- * Captures whatever view is passed as `viewRef` (today: the placeholder
- * result card). A Figma-designed card can replace that view later without
- * changing this API. Falls back to `share_message` text when image share
- * is unavailable (including web local-file limits).
+ * Captures the Share Card / 1080 view (`AssessmentShareCard`) at 1080×1440.
+ * Falls back to `share_message` text when image share is unavailable.
  */
 export async function shareAssessmentCard(
   viewRef: ShotRef,
