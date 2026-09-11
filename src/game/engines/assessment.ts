@@ -21,12 +21,12 @@ export function parseAssessmentSource(value: unknown): AssessmentSource {
   return 'deeplink';
 }
 
-/** Playful labels only. Do not map these to diagnoses or ability claims. */
+/** ASO-locked entertainment bands. Do not map these to diagnoses or ability claims. */
 export function assessmentBand(score: number): AssessmentBand {
-  if (score >= 85) return { label: 'Lightning snapshot', blurb: 'Quick and accurate on this run.' };
-  if (score >= 70) return { label: 'Sharp snapshot', blurb: 'Clean attention on this short run.' };
-  if (score >= 55) return { label: 'Steady snapshot', blurb: 'A solid, even pace this time.' };
-  return { label: 'Warming up', blurb: 'A starting point — try another run anytime.' };
+  if (score >= 85) return { label: 'Peak focus', blurb: 'Fast and accurate on this short run.' };
+  if (score >= 70) return { label: 'Clear focus', blurb: 'Steady attention across this snapshot.' };
+  if (score >= 55) return { label: 'Solid run', blurb: 'Even pace — room to sharpen next time.' };
+  return { label: 'Getting started', blurb: 'A baseline — take another snapshot anytime.' };
 }
 
 /**
@@ -83,7 +83,7 @@ export function shareMessage(result: AssessmentResult): string {
  * Names are the ASO / Figma contract — do not rename without updating
  * `docs/assessment-result-card.md`. Values are entertainment-only.
  *
- * `band_label` / `band_blurb` are draft placeholder copy until ASO locks listing language.
+ * `band_label` / `band_blurb` are ASO-locked entertainment copy (not clinical).
  */
 export function RESULT_CARD_FIELDS(result: AssessmentResult): { key: string; value: string }[] {
   return [

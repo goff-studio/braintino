@@ -17,8 +17,8 @@ Rendered by `RESULT_CARD_FIELDS` in `src/game/engines/assessment.ts` and shown o
 | `assessment_name` | string | `Focus Snapshot` | User-facing name. ASO may lock a store-facing variant later. |
 | `score` | number 0–100 | `78` | Weighted entertainment snapshot (`0.4*focus + 0.35*speed + 0.25*consistency`). |
 | `score_max` | number | `100` | Always 100. |
-| `band_label` | string | `Sharp snapshot` | **Draft placeholder** band. ASO should lock final listing language. Not a diagnosis. |
-| `band_blurb` | string | `Clean attention on this short run.` | **Draft placeholder** one-liner. Same caveat as `band_label`. |
+| `band_label` | string | `Clear focus` | ASO-locked band for the score (see thresholds). Not a diagnosis. |
+| `band_blurb` | string | `Steady attention across this snapshot.` | ASO-locked one-liner for that band. |
 | `focus` | number 0–100 | `82` | Cue accuracy on this run. |
 | `speed` | number 0–100 | `70` | Response-time score on this run. |
 | `consistency` | number 0–100 | `81` | Response-time steadiness on this run. |
@@ -29,14 +29,14 @@ Full disclaimer (`disclaimer`):
 
 > For entertainment and self-insight only. Not a medical, diagnostic, or clinical test — and not a measure of IQ, ADHD, or any health condition.
 
-Draft `band_label` thresholds (placeholder copy, not clinical cutoffs):
+ASO-locked `band_label` / `band_blurb` thresholds (entertainment only, not clinical cutoffs):
 
 | Score | `band_label` | `band_blurb` |
 | --- | --- | --- |
-| ≥ 85 | Lightning snapshot | Quick and accurate on this run. |
-| ≥ 70 | Sharp snapshot | Clean attention on this short run. |
-| ≥ 55 | Steady snapshot | A solid, even pace this time. |
-| else | Warming up | A starting point — try another run anytime. |
+| ≥ 85 | Peak focus | Fast and accurate on this short run. |
+| ≥ 70 | Clear focus | Steady attention across this snapshot. |
+| ≥ 55 | Solid run | Even pace — room to sharpen next time. |
+| else | Getting started | A baseline — take another snapshot anytime. |
 
 ## Off-card payload (stored + analytics, not required on the image)
 
