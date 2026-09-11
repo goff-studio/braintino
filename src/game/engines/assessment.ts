@@ -77,3 +77,26 @@ export function scoreAssessment(
 export function shareMessage(result: AssessmentResult): string {
   return `I scored ${result.score}/100 on Braintino's Focus Snapshot. Entertainment only — not a diagnosis.`;
 }
+
+/**
+ * Ordered fields rendered on the placeholder share card.
+ * Names are the ASO / Figma contract — do not rename without updating
+ * `docs/assessment-result-card.md`. Values are entertainment-only.
+ *
+ * `band_label` / `band_blurb` are draft placeholder copy until ASO locks listing language.
+ */
+export function RESULT_CARD_FIELDS(result: AssessmentResult): { key: string; value: string }[] {
+  return [
+    { key: 'brand', value: 'Braintino' },
+    { key: 'assessment_id', value: result.id },
+    { key: 'assessment_name', value: 'Focus Snapshot' },
+    { key: 'score', value: String(result.score) },
+    { key: 'score_max', value: '100' },
+    { key: 'band_label', value: result.band.label },
+    { key: 'band_blurb', value: result.band.blurb },
+    { key: 'focus', value: String(result.focus) },
+    { key: 'speed', value: String(result.speed) },
+    { key: 'consistency', value: String(result.consistency) },
+    { key: 'disclaimer_short', value: 'Entertainment only · Not a diagnosis' },
+  ];
+}

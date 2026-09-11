@@ -32,9 +32,12 @@ async function shareTextFallback(result: AssessmentResult): Promise<ShareMethod>
 }
 
 /**
- * Capture the branded result card and open the system share sheet.
- * Native: image file via expo-sharing. Web: Web Share with a PNG when
- * available, otherwise a text fallback (local file URIs cannot be shared on web).
+ * Share plumbing for the Focus Snapshot.
+ *
+ * Captures whatever view is passed as `viewRef` (today: the placeholder
+ * result card). A Figma-designed card can replace that view later without
+ * changing this API. Falls back to `share_message` text when image share
+ * is unavailable (including web local-file limits).
  */
 export async function shareAssessmentCard(
   viewRef: ShotRef,

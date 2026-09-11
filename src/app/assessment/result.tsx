@@ -1,22 +1,24 @@
 import { useRouter } from 'expo-router';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppButton } from '@/components/AppButton';
 import { AppText } from '@/components/AppText';
 import { AssessmentDisclaimer } from '@/components/AssessmentDisclaimer';
 import { AssessmentShareCard } from '@/components/AssessmentShareCard';
-import { Reveal } from '@/components/Reveal';
 import { ScreenBackground } from '@/components/ScreenBackground';
 import { gradients } from '@/constants/colors';
 import { spacing } from '@/constants/spacing';
 import { useTheme } from '@/hooks/useTheme';
-import { playSound } from '@/services/audio/audio';
 import { trackResultShared } from '@/services/analytics/assessmentEvents';
-import { completionHaptic } from '@/services/haptics/haptics';
 import { shareAssessmentCard } from '@/services/share/shareCard';
 import { useGameStore } from '@/store/useGameStore';
 
+/**
+ * Minimal result UI. Final layout / visual polish is held for a Figma pass.
+ * The share button captures the placeholder card so a designed image can
+ * drop in later without changing field names (see docs/assessment-result-card.md).
+ */
 export default function AssessmentResultScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -25,12 +27,6 @@ export default function AssessmentResultScreen() {
   const onboardingDone = useGameStore((s) => s.settings.onboardingDone);
   const cardRef = useRef<View>(null);
   const [sharing, setSharing] = useState(false);
-
-  useEffect(() => {
-    if (!result) return;
-    playSound('complete');
-    completionHaptic();
-  }, [result]);
 
   if (!result) {
     return (
@@ -56,7 +52,7 @@ export default function AssessmentResultScreen() {
       const method = await shareAssessmentCard(cardRef, result);
       trackResultShared(result, method);
     } catch {
-      // Share cancel / unavailable — don't toast medical copy or block the screen.
+      // Share cancel / unavailable — do not invent medical copy.
     } finally {
       setSharing(false);
     }
@@ -69,48 +65,45 @@ export default function AssessmentResultScreen() {
           paddingTop: insets.top + spacing.xl,
           paddingHorizontal: spacing.lg,
           paddingBottom: insets.bottom + spacing.xl,
-          gap: spacing.lg,
+          gap: spacing.md,
         }}
       >
-        <Reveal index={0} style={{ alignItems: 'center', gap: spacing.xs }}>
-          <AppText variant="heading" center>
-            Your snapshot
-          </AppText>
-          <AppText variant="body" color={colors.textSoft} center>
-            {result.band.blurb}
-          </AppText>
-        </Reveal>
+        <AppText variant="title">Focus Snapshot result</AppText>
+        <AppText variant="caption" color={colors.textMuted}>
+          Placeholder UI — score fields only. Visual design pending Figma.
+        </AppText>
 
-        <Reveal index={1}>
-          <View ref={cardRef} collapsable={false}>
-            <AssessmentShareCard result={result} />
-          </View>
-        </Reveal>
+        <AppText variant="body">score: {result.score} / 100</AppText>
+        <AppText variant="body">focus: {result.focus}</AppText>
+        <AppText variant="body">speed: {result.speed}</AppText>
+        <AppText variant="body">consistency: {result.consistency}</AppText>
+        <AppText variant="body">band_label: {result.band.label}</AppText>
+        <AppText variant="body" color={colors.textSoft}>
+          band_blurb: {result.band.blurb}
+        </AppText>
 
-        <Reveal index={2}>
-          <AssessmentDisclaimer />
-        </Reveal>
+        <View ref={cardRef} collapsable={false}>
+          <AssessmentShareCard result={result} />
+        </View>
 
-        <Reveal index={3} style={{ gap: spacing.md }}>
-          <AppButton
-            title="Share result"
-            icon="share-outline"
-            tone="lime"
-            disabled={sharing}
-            onPress={() => {
-              void onShare();
-            }}
-          />
-          <AppButton
-            title="Try again"
-            icon="refresh"
-            variant="secondary"
-            onPress={() => {
-              router.replace({ pathname: '/assessment/play', params: { source: result.source } });
-            }}
-          />
-          <AppButton title="Done" variant="ghost" onPress={leave} />
-        </Reveal>
+        <AssessmentDisclaimer />
+
+        <AppButton
+          title="Share result"
+          icon="share-outline"
+          disabled={sharing}
+          onPress={() => {
+            void onShare();
+          }}
+        />
+        <AppButton
+          title="Try again"
+          variant="secondary"
+          onPress={() => {
+            router.replace({ pathname: '/assessment/play', params: { source: result.source } });
+          }}
+        />
+        <AppButton title="Done" variant="ghost" onPress={leave} />
       </ScrollView>
     </ScreenBackground>
   );
