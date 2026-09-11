@@ -55,26 +55,52 @@ export function GameHeader({ title, round, totalRounds, score, onPause, onDark }
         <AppText variant="gameLabel" weight="bold" color={textColor}>
           {title}
         </AppText>
-        <View style={{ flexDirection: 'row', gap: spacing.xs, marginTop: 4, alignItems: 'center' }}>
-          {Array.from({ length: totalRounds }, (_, i) => (
+        {totalRounds > 10 ? (
+          <View style={{ marginTop: 6, gap: 4 }}>
             <View
-              key={i}
               style={{
-                width: i < round ? 18 : 10,
                 height: 8,
                 borderRadius: 4,
-                backgroundColor:
-                  i < round ? colors.accent : onDark ? 'rgba(255,255,255,0.25)' : colors.trackFaint,
-                // Lime needs a hairline outline to hold up on light surfaces.
-                borderWidth: i < round && !onDark ? 1 : 0,
-                borderColor: 'rgba(11,31,53,0.25)',
+                backgroundColor: onDark ? 'rgba(255,255,255,0.25)' : colors.trackFaint,
+                overflow: 'hidden',
               }}
-            />
-          ))}
-          <AppText variant="caption" color={softColor} style={{ marginLeft: spacing.xs }}>
-            {Math.min(round, totalRounds)}/{totalRounds}
-          </AppText>
-        </View>
+            >
+              <View
+                style={{
+                  width: `${(Math.min(round, totalRounds) / totalRounds) * 100}%`,
+                  height: '100%',
+                  backgroundColor: colors.accent,
+                  borderWidth: onDark ? 0 : 1,
+                  borderColor: 'rgba(11,31,53,0.25)',
+                }}
+              />
+            </View>
+            <AppText variant="caption" color={softColor}>
+              {Math.min(round, totalRounds)}/{totalRounds}
+            </AppText>
+          </View>
+        ) : (
+          <View style={{ flexDirection: 'row', gap: spacing.xs, marginTop: 4, alignItems: 'center' }}>
+            {Array.from({ length: totalRounds }, (_, i) => (
+              <View
+                key={i}
+                style={{
+                  width: i < round ? 18 : 10,
+                  height: 8,
+                  borderRadius: 4,
+                  backgroundColor:
+                    i < round ? colors.accent : onDark ? 'rgba(255,255,255,0.25)' : colors.trackFaint,
+                  // Lime needs a hairline outline to hold up on light surfaces.
+                  borderWidth: i < round && !onDark ? 1 : 0,
+                  borderColor: 'rgba(11,31,53,0.25)',
+                }}
+              />
+            ))}
+            <AppText variant="caption" color={softColor} style={{ marginLeft: spacing.xs }}>
+              {Math.min(round, totalRounds)}/{totalRounds}
+            </AppText>
+          </View>
+        )}
       </View>
       {score !== undefined && (
         <AppText variant="gameLabel" weight="extraBold" color={textColor}>
