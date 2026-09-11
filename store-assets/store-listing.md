@@ -132,18 +132,18 @@ Braintino is a cognitive practice app for entertainment and personal development
 ## Screenshot shot list (locked to Figma)
 
 Figma: https://www.figma.com/design/ws3siWmGHVRfkt3awyKGBz
-Frames: `iPhone / Result`, `Share Card / 1080`
+Frames: `iPhone / Result` (node `1:2`), `Share Card / 1080` (node `1:39`)
 
 Export / shoot order (iOS + Android). First three captions are OCR-indexed on iOS — keep short and keyword-rich.
 
-1. **Result card** — frame `iPhone / Result` (sample: score 78, band Clear focus, bars focus/speed/consistency, dual disclaimer). Caption: `Know your focus score`
-2. **Share card** — frame `Share Card / 1080` (branded share crop). Caption: `Share your brain score`
-3. **5-min habit** — Today / daily session ~5 min + streak (calm adult UI). Caption: `Five minutes a day`
-4. **Skill chart** — weekly balance across skills. Caption: `See what improved`
-5. **Calm adult practice** — one exercise in progress, no cartoons. Caption: `Built for adults`
-6. **Adaptive difficulty** — Relaxed / Balanced / Challenging. Caption: `Difficulty that fits you`
+1. **Result card** — present (`ios/1-result.png`, `android/1-result.png`). Figma 3x PNG from `iPhone / Result` node `1:2` (sample: score 78, band Clear focus, bars focus/speed/consistency, dual disclaimer). Caption: `Know your focus score`
+2. **Share card** — present (`ios/2-share-card.png`, `android/2-share-card.png`). Figma 3x PNG from `Share Card / 1080` node `1:39` (branded share crop). Caption: `Share your brain score`
+3. **5-min habit** — pending. Today / daily session ~5 min + streak (calm adult UI). Caption: `Five minutes a day`
+4. **Skill chart** — pending. Weekly balance across skills. Caption: `See what improved`
+5. **Calm adult practice** — pending. One exercise in progress, no cartoons. Caption: `Built for adults`
+6. **Adaptive difficulty** — pending. Relaxed / Balanced / Challenging. Caption: `Difficulty that fits you`
 
-Do not use generic puzzle collage frames as hero shots. Prefer result + share + habit.
+Do not use generic puzzle collage frames as hero shots. Prefer result + share + habit. Legacy `1-today.png` / `2-practice.png` / etc. remain until shots 3–6 land.
 
 ## Disclaimer strings (match in-app)
 - `disclaimer_short`: Entertainment only · Not a diagnosis
