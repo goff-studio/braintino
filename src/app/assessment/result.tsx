@@ -65,13 +65,13 @@ export default function AssessmentResultScreen() {
       <View
         ref={cardRef}
         collapsable={false}
-        pointerEvents="none"
         style={{
           position: 'absolute',
           left: -SHARE_CARD_WIDTH - 40,
           top: 0,
           width: SHARE_CARD_WIDTH,
           height: SHARE_CARD_HEIGHT,
+          pointerEvents: 'none',
         }}
       >
         <AssessmentShareCard result={result} />
@@ -82,9 +82,10 @@ export default function AssessmentResultScreen() {
           paddingTop: insets.top + 12,
           paddingHorizontal: 24,
           paddingBottom: insets.bottom + 28,
-          gap: 20,
+          flexGrow: 1,
         }}
       >
+        <View style={{ width: '100%', maxWidth: 390, alignSelf: 'center', gap: 20 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <Pressable
             accessibilityRole="button"
@@ -207,6 +208,7 @@ export default function AssessmentResultScreen() {
         <AppText variant="caption" color={colors.textMuted} style={{ fontSize: 11 }} center>
           {RESULT_SCREEN_DISCLAIMER}
         </AppText>
+        </View>
       </ScrollView>
     </ScreenBackground>
   );
