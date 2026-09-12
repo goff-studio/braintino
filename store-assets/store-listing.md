@@ -2,6 +2,16 @@
 
 Source of truth for App Store / Google Play copy. Issue #3 rebuild around Focus Snapshot.
 
+## Locales
+
+Localized listing files (issue #8, listing half — Product owns in-app UI/i18n separately):
+
+- English — this file
+- [Español](store-listing.es.md)
+- [Português (Brasil)](store-listing.pt.md)
+- [Deutsch](store-listing.de.md)
+- [Français](store-listing.fr.md)
+
 Target keywords: focus test, brain score, attention, memory, concentration, cognitive,
 brain training, daily practice, adults, processing speed, mental exercise.
 
