@@ -1,3 +1,4 @@
+import type { ReminderContent } from '@/services/notifications/reminderCopy';
 import type { ReminderFrequency } from '@/types/settings';
 import { dateKey } from '@/utils/date';
 
@@ -29,14 +30,16 @@ export async function scheduleReminder(
   _frequency: ReminderFrequency,
   _hour: number,
   _minute: number,
-  _anchorKey: string
+  _anchorKey: string,
+  _content?: ReminderContent
 ): Promise<void> {}
 
 export async function syncReminder(
   _frequency: ReminderFrequency,
   _hour: number,
   _minute: number,
-  _anchorKey: string
+  _anchorKey: string,
+  _content?: ReminderContent
 ): Promise<boolean> {
   return false;
 }

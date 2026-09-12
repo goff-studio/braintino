@@ -61,6 +61,7 @@ export default function OnboardingScreen() {
         frequency: reminderFrequency,
         hour: reminderTime.hour,
         minute: reminderTime.minute,
+        source: 'onboarding',
       });
     } finally {
       setRequestingReminder(false);
@@ -246,8 +247,8 @@ export default function OnboardingScreen() {
                 Make it a routine
               </AppText>
               <AppText variant="body" color={colors.textSoft} center>
-                Practice sticks when it&apos;s regular. Want a nudge? Reminders are scheduled right
-                on this device — nothing is sent anywhere.
+                Practice sticks when it&apos;s regular. Daily at 9:00 AM is already selected — confirm
+                the nudge, or skip. Reminders stay on this device.
               </AppText>
             </AppCard>
             </Reveal>
@@ -286,7 +287,7 @@ export default function OnboardingScreen() {
                           {freq.label}
                         </AppText>
                         <AppText variant="caption" color={colors.textSoft} center>
-                          {freq.description}
+                          {freq.id === 'daily' ? 'Recommended' : freq.description}
                         </AppText>
                       </Pressable>
                     );
@@ -340,14 +341,20 @@ export default function OnboardingScreen() {
 
             <Reveal index={3} exit>
               <AppButton
-                title="Remind Me"
+                title={
+                  reminderFrequency === 'daily'
+                    ? `Remind me daily at ${reminderTime.description}`
+                    : reminderFrequency === 'weekdays'
+                      ? `Remind me weekdays at ${reminderTime.description}`
+                      : `Remind me every other day at ${reminderTime.description}`
+                }
                 icon="notifications-outline"
                 disabled={requestingReminder}
                 onPress={enableReminder}
               />
             </Reveal>
             <Reveal index={4} exit>
-              <AppButton title="Maybe later" variant="ghost" onPress={() => setStep(3)} />
+              <AppButton title="Not now" variant="ghost" onPress={() => setStep(3)} />
             </Reveal>
           </View>
         )}

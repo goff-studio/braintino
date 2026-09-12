@@ -1,5 +1,9 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
+import {
+  defaultReminderContent,
+  type ReminderContent,
+} from '@/services/notifications/reminderCopy';
 import type { ReminderFrequency } from '@/types/settings';
 import { dateKey } from '@/utils/date';
 
@@ -19,10 +23,7 @@ const ANDROID_CHANNEL_ID = 'practice-reminders';
  */
 const SCHEDULE_WINDOW_DAYS = 28;
 
-const REMINDER_CONTENT = {
-  title: 'Time to practice',
-  body: 'Five focused minutes keeps your training on track.',
-} as const;
+export type { ReminderContent };
 
 export type ReminderPermission = 'granted' | 'denied' | 'blocked';
 
@@ -93,15 +94,17 @@ export async function scheduleReminder(
   frequency: ReminderFrequency,
   hour: number,
   minute: number,
-  anchorKey: string
+  anchorKey: string,
+  content: ReminderContent = defaultReminderContent
 ): Promise<void> {
   if (!isSupported()) return;
   await cancelReminder();
+  const payload = { title: content.title, body: content.body };
 
   if (frequency === 'daily') {
     await Notifications.scheduleNotificationAsync({
       identifier: `${REMINDER_PREFIX}-daily`,
-      content: REMINDER_CONTENT,
+      content: payload,
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.DAILY,
         hour,
@@ -118,7 +121,7 @@ export async function scheduleReminder(
       [2, 3, 4, 5, 6].map((weekday) =>
         Notifications.scheduleNotificationAsync({
           identifier: `${REMINDER_PREFIX}-w${weekday}`,
-          content: REMINDER_CONTENT,
+          content: payload,
           trigger: {
             type: Notifications.SchedulableTriggerInputTypes.WEEKLY,
             weekday,
@@ -148,7 +151,7 @@ export async function scheduleReminder(
     jobs.push(
       Notifications.scheduleNotificationAsync({
         identifier: `${REMINDER_PREFIX}-d${dateKey(day)}`,
-        content: REMINDER_CONTENT,
+        content: payload,
         trigger: {
           type: Notifications.SchedulableTriggerInputTypes.DATE,
           date: fire,
@@ -170,7 +173,8 @@ export async function syncReminder(
   frequency: ReminderFrequency,
   hour: number,
   minute: number,
-  anchorKey: string
+  anchorKey: string,
+  content: ReminderContent = defaultReminderContent
 ): Promise<boolean> {
   if (!isSupported()) return false;
   const perms = await Notifications.getPermissionsAsync();
@@ -178,6 +182,6 @@ export async function syncReminder(
     await cancelReminder();
     return false;
   }
-  await scheduleReminder(frequency, hour, minute, anchorKey);
+  await scheduleReminder(frequency, hour, minute, anchorKey, content);
   return true;
 }

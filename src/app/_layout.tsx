@@ -43,10 +43,11 @@ export default function RootLayout() {
     useGameStore
       .getState()
       .hydrate()
-      .then(() => {
+      .then(async () => {
         const { analyticsEnabled } = useGameStore.getState().settings;
-        initAnalytics(analyticsEnabled);
+        await initAnalytics(analyticsEnabled);
         AppsFlyerService.initialize(analyticsEnabled);
+        useGameStore.getState().maybeTrackD1Return();
         PurchaseService.initialize();
         // Ad-free purchasers skip the whole ad stack (including the iOS ATT
         // prompt). Show-time checks still guard the mid-session flip (e.g. a

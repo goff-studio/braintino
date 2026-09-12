@@ -17,8 +17,11 @@ import { SkillChip } from '@/components/SkillChip';
 import { StatPill } from '@/components/StatPill';
 import { gradients } from '@/constants/colors';
 import { spacing } from '@/constants/spacing';
+import { TomorrowPreview } from '@/components/TomorrowPreview';
 import { getDailyFact } from '@/data/facts';
 import { MINI_GAMES } from '@/data/miniGames';
+import { getTodayDailyPlan } from '@/game/engines/dailyTraining';
+import { streakSaveMessage } from '@/game/engines/habitLoop';
 import { difficultyChangeMessage } from '@/game/engines/difficulty';
 import { consistencyLabel, createFriendlyFeedback } from '@/game/engines/scoring';
 import { isSessionComplete, sessionTotals } from '@/game/engines/session';
@@ -28,6 +31,7 @@ import { completionHaptic } from '@/services/haptics/haptics';
 import { AdService } from '@/services/monetization/AdService';
 import { useGameStore } from '@/store/useGameStore';
 import type { SkillType } from '@/types/game';
+import { tomorrowKey } from '@/utils/date';
 
 /**
  * How long the fact of the day holds the screen on its own before the rest of
@@ -56,6 +60,10 @@ export default function ResultsScreen() {
   const dailyFact = useMemo(
     () => (dailyComplete && session ? getDailyFact(session.dateKey) : null),
     [dailyComplete, session]
+  );
+  const tomorrowPlan = useMemo(
+    () => (dailyComplete ? getTodayDailyPlan(tomorrowKey(), progress) : null),
+    [dailyComplete, progress]
   );
 
   // The fact leads the screen — it enters on its own, and the results follow a
@@ -226,23 +234,26 @@ export default function ResultsScreen() {
 
           {dailyComplete && totals && (
             <Reveal index={3}>
-            <AppCard style={{ gap: spacing.sm, alignItems: 'center' }}>
-              <AppText variant="bodyLarge" weight="bold">
-                Today’s Session
-              </AppText>
-              <View style={{ flexDirection: 'row', gap: spacing.sm, flexWrap: 'wrap', justifyContent: 'center' }}>
-                <StatPill icon="checkmark-done-outline" value={`${session!.results.length} exercises`} />
-                <StatPill icon="flash-outline" value={`+${totals.xp} XP`} />
-                <StatPill
-                  icon="flame-outline"
-                  value={`${progress.streak}-day streak`}
-                  variant="lime"
-                  accessibilityLabel={`${progress.streak}-day streak`}
-                />
+            <AppCard style={{ gap: spacing.md }}>
+              <View style={{ gap: spacing.sm, alignItems: 'center' }}>
+                <AppText variant="bodyLarge" weight="bold">
+                  Today’s Session
+                </AppText>
+                <View style={{ flexDirection: 'row', gap: spacing.sm, flexWrap: 'wrap', justifyContent: 'center' }}>
+                  <StatPill icon="checkmark-done-outline" value={`${session!.results.length} exercises`} />
+                  <StatPill icon="flash-outline" value={`+${totals.xp} XP`} />
+                  <StatPill
+                    icon="flame-outline"
+                    value={`${progress.streak}-day streak`}
+                    variant="lime"
+                    accessibilityLabel={`${progress.streak}-day streak`}
+                  />
+                </View>
+                <AppText variant="body" color={colors.textSoft} center>
+                  {streakSaveMessage(progress.streak)}
+                </AppText>
               </View>
-              <AppText variant="body" color={colors.textSoft} center>
-                Steady work. Come back tomorrow to keep the streak going.
-              </AppText>
+              {tomorrowPlan && <TomorrowPreview plan={tomorrowPlan} />}
             </AppCard>
             </Reveal>
           )}

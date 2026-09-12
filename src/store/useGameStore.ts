@@ -4,6 +4,7 @@ import { checkNewBadges, type BadgeDef } from '@/data/badges';
 import { applyXp } from '@/data/levels';
 import { getTodayDailyPlan } from '@/game/engines/dailyTraining';
 import { calculateNextLevel, getStartingLevel } from '@/game/engines/difficulty';
+import { reminderContentFor, shouldLogD1Return } from '@/game/engines/habitLoop';
 import {
   advanceSession,
   createDailySession,
@@ -15,6 +16,12 @@ import {
   trackAssessmentCompleted,
   trackAssessmentStarted,
 } from '@/services/analytics/assessmentEvents';
+import {
+  trackD1Return,
+  trackDailyCompleted,
+  trackReminderEnabled,
+  type ReminderEnabledSource,
+} from '@/services/analytics/habitEvents';
 import { setAnalyticsConsent, trackEvent } from '@/services/analytics/analytics';
 import { AppsFlyerService } from '@/services/attribution/AppsFlyerService';
 import { setSoundEnabled } from '@/services/audio/audio';
@@ -42,7 +49,12 @@ import { daysAgoKey, todayKey, yesterdayKey } from '@/utils/date';
 
 const MAX_RECENT_RESULTS = 15;
 
-type ReminderConfig = { frequency?: ReminderFrequency; hour?: number; minute?: number };
+type ReminderConfig = {
+  frequency?: ReminderFrequency;
+  hour?: number;
+  minute?: number;
+  source?: ReminderEnabledSource;
+};
 
 function initialMiniGameProgress(level: number): MiniGameProgress {
   return { level, bestPracticeScore: 0, bestAccuracy: 0, sessionsPlayed: 0, lastResults: [] };
@@ -65,6 +77,8 @@ type GameStore = {
   assessmentSource: AssessmentSource;
 
   hydrate: () => Promise<void>;
+  /** Log d1_return after analytics init (once per install). */
+  maybeTrackD1Return: () => void;
   updateSettings: (partial: Partial<PlayerSettings>) => void;
   /**
    * Turn the practice reminder on/off, optionally setting frequency/time in
@@ -123,20 +137,53 @@ export const useGameStore = create<GameStore>((set, get) => ({
     PurchaseService.subscribe((value) => set({ adFree: value }));
     setSoundEnabled(settings.soundEnabled);
     setHapticsEnabled(settings.hapticsEnabled);
-    set({ progress, settings, adFree, lastAssessment, hydrated: true });
+
+    const today = todayKey();
+    const nextSettings = settings.firstOpenDate
+      ? settings
+      : {
+          ...settings,
+          firstOpenDate: today,
+          // Existing installs already past onboarding are not a D1 cohort.
+          d1ReturnLogged: settings.onboardingDone,
+        };
+    if (nextSettings !== settings) {
+      storage.saveSettings(nextSettings);
+    }
+
+    set({ progress, settings: nextSettings, adFree, lastAssessment, hydrated: true });
     // Reconcile the local reminder schedule with settings: refreshes the
     // rolling every-other-day window and catches a permission revoked in
-    // system Settings since last launch.
-    if (settings.reminderEnabled) {
+    // system Settings since last launch. Copy is streak / next-session aware.
+    if (nextSettings.reminderEnabled) {
       syncReminder(
-        settings.reminderFrequency,
-        settings.reminderHour,
-        settings.reminderMinute,
-        settings.reminderAnchor ?? todayKey()
+        nextSettings.reminderFrequency,
+        nextSettings.reminderHour,
+        nextSettings.reminderMinute,
+        nextSettings.reminderAnchor ?? today,
+        reminderContentFor(progress, today)
       ).then((active) => {
         if (!active) get().updateSettings({ reminderEnabled: false });
       });
     }
+  },
+
+  /** Fire d1_return once analytics is up — hydrate only stamps firstOpenDate. */
+  maybeTrackD1Return: () => {
+    const { settings, progress } = get();
+    const today = todayKey();
+    const d1 = shouldLogD1Return({
+      firstOpenDate: settings.firstOpenDate,
+      d1ReturnLogged: settings.d1ReturnLogged,
+      today,
+    });
+    if (!d1.log) return;
+    trackD1Return({
+      daysSinceFirstOpen: d1.daysSinceFirstOpen,
+      streak: progress.streak,
+      completedDailyYesterday: progress.lastDailyCompletedDate === yesterdayKey(),
+    });
+    get().updateSettings({ d1ReturnLogged: true });
   },
 
   updateSettings: (partial) => {
@@ -166,13 +213,24 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const hour = config?.hour ?? s.reminderHour;
     const minute = config?.minute ?? s.reminderMinute;
     const anchor = nextAnchorKey(hour, minute);
-    await scheduleReminder(frequency, hour, minute, anchor);
+    await scheduleReminder(
+      frequency,
+      hour,
+      minute,
+      anchor,
+      reminderContentFor(get().progress)
+    );
     get().updateSettings({
       reminderEnabled: true,
       reminderFrequency: frequency,
       reminderHour: hour,
       reminderMinute: minute,
       reminderAnchor: anchor,
+    });
+    trackReminderEnabled({
+      source: config?.source ?? 'profile',
+      frequency,
+      hour,
     });
     return 'granted';
   },
@@ -190,7 +248,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
       reminderAnchor: anchor,
     });
     if (s.reminderEnabled) {
-      scheduleReminder(frequency, hour, minute, anchor).catch(() => {});
+      scheduleReminder(
+        frequency,
+        hour,
+        minute,
+        anchor,
+        reminderContentFor(get().progress)
+      ).catch(() => {});
     }
   },
 
@@ -324,6 +388,21 @@ export const useGameStore = create<GameStore>((set, get) => ({
           progress.lastDailyCompletedDate === yesterdayKey() ? progress.streak + 1 : 1;
         progress.lastDailyCompletedDate = today;
         progress.dailyHistory = [...progress.dailyHistory, today].slice(-60);
+        const plan = getTodayDailyPlan(today, progress);
+        trackDailyCompleted({
+          streak: progress.streak,
+          totalSessions: progress.totalSessions,
+          planTitle: plan.title,
+        });
+        if (state.settings.reminderEnabled) {
+          scheduleReminder(
+            state.settings.reminderFrequency,
+            state.settings.reminderHour,
+            state.settings.reminderMinute,
+            state.settings.reminderAnchor ?? today,
+            reminderContentFor(progress, today)
+          ).catch(() => {});
+        }
       }
     }
 

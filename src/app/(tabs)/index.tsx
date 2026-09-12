@@ -11,13 +11,15 @@ import { Reveal } from '@/components/Reveal';
 import { ScreenBackground } from '@/components/ScreenBackground';
 import { StatCard } from '@/components/StatCard';
 import { StatPill } from '@/components/StatPill';
+import { TomorrowPreview } from '@/components/TomorrowPreview';
 import { gradients } from '@/constants/colors';
 import { spacing } from '@/constants/spacing';
 import { MINI_GAMES } from '@/data/miniGames';
 import { getTodayDailyPlan } from '@/game/engines/dailyTraining';
+import { streakSaveMessage } from '@/game/engines/habitLoop';
 import { useTheme } from '@/hooks/useTheme';
 import { useGameStore } from '@/store/useGameStore';
-import { currentWeekKeys, todayKey } from '@/utils/date';
+import { currentWeekKeys, todayKey, tomorrowKey } from '@/utils/date';
 
 const WEEKDAYS = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
 const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
@@ -32,6 +34,10 @@ export default function TodayScreen() {
 
   const today = todayKey();
   const plan = useMemo(() => getTodayDailyPlan(today, progress), [today, progress]);
+  const tomorrowPlan = useMemo(
+    () => getTodayDailyPlan(tomorrowKey(), progress),
+    [progress]
+  );
   const dailyDone = progress.lastDailyCompletedDate === today;
 
   const now = new Date();
@@ -82,60 +88,66 @@ export default function TodayScreen() {
               Today’s Session
             </AppText>
             <AppText variant="body" color={colors.textOnDarkSoft}>
-              {plan.title} · 3 exercises · about 5 minutes
+              {dailyDone
+                ? 'Completed · tomorrow is ready'
+                : `${plan.title} · 3 exercises · about 5 minutes`}
             </AppText>
           </View>
 
-          <View style={{ flexDirection: 'row', gap: spacing.sm }}>
-            {plan.games.map((id) => {
-              const game = MINI_GAMES[id];
-              return (
-                <View
-                  key={id}
-                  style={{
-                    flex: 1,
-                    alignItems: 'center',
-                    gap: 4,
-                    backgroundColor: 'rgba(255,255,255,0.12)',
-                    borderRadius: 16,
-                    paddingVertical: spacing.sm,
-                  }}
-                >
-                  <Ionicons
-                    name={game.icon as keyof typeof Ionicons.glyphMap}
-                    size={22}
-                    color={colors.textOnDark}
-                  />
-                  <AppText variant="caption" weight="semiBold" color={colors.textOnDarkSoft}>
-                    {game.shortTitle}
+          {dailyDone ? (
+            <>
+              <View style={{ alignItems: 'center', gap: spacing.xs }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+                  <Ionicons name="checkmark-circle" size={24} color={colors.accent} />
+                  <AppText variant="bodyLarge" weight="bold" color={colors.textOnDark}>
+                    Today’s session completed
                   </AppText>
                 </View>
-              );
-            })}
-          </View>
-
-          {dailyDone ? (
-            <View style={{ alignItems: 'center', gap: spacing.xs }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-                <Ionicons name="checkmark-circle" size={24} color={colors.accent} />
-                <AppText variant="bodyLarge" weight="bold" color={colors.textOnDark}>
-                  Today’s session completed
+                <AppText variant="caption" color={colors.textOnDarkSoft} center>
+                  {streakSaveMessage(progress.streak)}
                 </AppText>
               </View>
-              <AppText variant="caption" color={colors.textOnDarkSoft}>
-                Come back tomorrow to keep your streak.
-              </AppText>
-            </View>
+              <TomorrowPreview plan={tomorrowPlan} tone="dark" />
+            </>
           ) : (
-            <AppButton
-              title="Start Daily Practice"
-              icon="play"
-              tone="lime"
-              onPress={() => {
-                startDailySession();
-                router.push('/daily');
-              }}
-            />
+            <>
+              <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+                {plan.games.map((id) => {
+                  const game = MINI_GAMES[id];
+                  return (
+                    <View
+                      key={id}
+                      style={{
+                        flex: 1,
+                        alignItems: 'center',
+                        gap: 4,
+                        backgroundColor: 'rgba(255,255,255,0.12)',
+                        borderRadius: 16,
+                        paddingVertical: spacing.sm,
+                      }}
+                    >
+                      <Ionicons
+                        name={game.icon as keyof typeof Ionicons.glyphMap}
+                        size={22}
+                        color={colors.textOnDark}
+                      />
+                      <AppText variant="caption" weight="semiBold" color={colors.textOnDarkSoft}>
+                        {game.shortTitle}
+                      </AppText>
+                    </View>
+                  );
+                })}
+              </View>
+              <AppButton
+                title="Start Daily Practice"
+                icon="play"
+                tone="lime"
+                onPress={() => {
+                  startDailySession();
+                  router.push('/daily');
+                }}
+              />
+            </>
           )}
         </AppCard>
         </Reveal>
@@ -178,22 +190,48 @@ export default function TodayScreen() {
           </View>
         </View>
 
-        <Reveal index={6}>
-          <AssessmentEntryCard
-            lastScore={lastAssessment?.score}
-            onPress={() => router.push({ pathname: '/assessment', params: { source: 'today' } })}
-          />
-        </Reveal>
-
-        {/* Practice library shortcut */}
-        <Reveal index={7}>
-          <AppButton
-            title="Browse Exercises"
-            icon="grid-outline"
-            variant="secondary"
-            onPress={() => router.push('/practice')}
-          />
-        </Reveal>
+        {dailyDone ? (
+          <Reveal index={6}>
+            <AppCard style={{ gap: spacing.md }}>
+              <View style={{ gap: 2 }}>
+                <AppText variant="bodyLarge" weight="bold">
+                  Keep going
+                </AppText>
+                <AppText variant="caption" color={colors.textSoft}>
+                  Today’s session is done. Practice more or take a Focus Snapshot.
+                </AppText>
+              </View>
+              <AppButton
+                title="Practice an exercise"
+                icon="grid-outline"
+                onPress={() => router.push('/practice')}
+              />
+              <AppButton
+                title={lastAssessment ? 'Retake Focus Snapshot' : 'Take Focus Snapshot'}
+                icon="flash-outline"
+                variant="secondary"
+                onPress={() => router.push({ pathname: '/assessment', params: { source: 'today' } })}
+              />
+            </AppCard>
+          </Reveal>
+        ) : (
+          <>
+            <Reveal index={6}>
+              <AssessmentEntryCard
+                lastScore={lastAssessment?.score}
+                onPress={() => router.push({ pathname: '/assessment', params: { source: 'today' } })}
+              />
+            </Reveal>
+            <Reveal index={7}>
+              <AppButton
+                title="Browse Exercises"
+                icon="grid-outline"
+                variant="secondary"
+                onPress={() => router.push('/practice')}
+              />
+            </Reveal>
+          </>
+        )}
       </ScrollView>
     </ScreenBackground>
   );
