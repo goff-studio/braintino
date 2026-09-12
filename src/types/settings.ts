@@ -34,6 +34,13 @@ export type PlayerSettings = {
    * reminder is first configured.
    */
   reminderAnchor: string | null;
+  /**
+   * First calendar day the app hydrated. Used for the d1_return funnel
+   * (issue #4). Set once; never reset with progress.
+   */
+  firstOpenDate: string | null;
+  /** Whether d1_return has already been logged for this install. */
+  d1ReturnLogged: boolean;
 };
 
 export const defaultSettings: PlayerSettings = {
@@ -50,4 +57,6 @@ export const defaultSettings: PlayerSettings = {
   reminderHour: 9,
   reminderMinute: 0,
   reminderAnchor: null,
+  firstOpenDate: null,
+  d1ReturnLogged: false,
 };

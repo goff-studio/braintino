@@ -16,6 +16,21 @@ export function yesterdayKey(): string {
   return dateKey(d);
 }
 
+export function tomorrowKey(from: Date = new Date()): string {
+  const d = new Date(from);
+  d.setDate(d.getDate() + 1);
+  return dateKey(d);
+}
+
+/** Whole calendar days from `fromKey` to `toKey` (YYYY-MM-DD). */
+export function daysBetweenKeys(fromKey: string, toKey: string): number {
+  const [fy, fm, fd] = fromKey.split('-').map(Number);
+  const [ty, tm, td] = toKey.split('-').map(Number);
+  const from = new Date(fy, fm - 1, fd).getTime();
+  const to = new Date(ty, tm - 1, td).getTime();
+  return Math.round((to - from) / 86_400_000);
+}
+
 export function daysAgoKey(days: number): string {
   const d = new Date();
   d.setDate(d.getDate() - days);
