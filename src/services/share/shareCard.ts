@@ -6,7 +6,14 @@ import { shareMessage } from '@/game/engines/assessment';
 import type { ShareMethod } from '@/services/analytics/assessmentEvents';
 import type { AssessmentResult } from '@/types/assessment';
 
-type ShotRef = Parameters<typeof captureRef>[0];
+export type ShotRef = Parameters<typeof captureRef>[0];
+
+export type ShareOutcome = {
+  method: ShareMethod;
+  platform: string;
+  completed: boolean;
+  activityType?: string;
+};
 
 const CAPTURE: CaptureOptions = {
   format: 'png',
@@ -29,12 +36,33 @@ function dataUriToFile(dataUri: string, filename: string): File | null {
   }
 }
 
-async function shareTextFallback(result: AssessmentResult): Promise<ShareMethod> {
-  await Share.share({
-    message: shareMessage(result),
-    title: 'Braintino Focus Snapshot',
-  });
-  return 'fallback_text';
+function outcomeFromShareResult(
+  method: ShareMethod,
+  shareResult: { action: string; activityType?: string | null }
+): ShareOutcome {
+  return {
+    method,
+    platform: Platform.OS,
+    completed: shareResult.action !== Share.dismissedAction,
+    activityType:
+      typeof shareResult.activityType === 'string' ? shareResult.activityType : undefined,
+  };
+}
+
+async function shareTextFallback(
+  message: string,
+  title = 'Braintino Focus Snapshot'
+): Promise<ShareOutcome> {
+  const shareResult = await Share.share({ message, title });
+  return outcomeFromShareResult('fallback_text', shareResult);
+}
+
+/** Prefill-only invite / streak text + store URLs (issue #7). */
+export async function shareTextInvite(
+  message: string,
+  title = 'Braintino'
+): Promise<ShareOutcome> {
+  return shareTextFallback(message, title);
 }
 
 /**
@@ -42,25 +70,30 @@ async function shareTextFallback(result: AssessmentResult): Promise<ShareMethod>
  *
  * Captures the Share Card / 1080 view (`AssessmentShareCard`) at 1080×1440.
  * Falls back to `share_message` text when image share is unavailable.
+ * Optional `message` overrides the sheet text (invite / streak copy).
  */
 export async function shareAssessmentCard(
   viewRef: ShotRef,
-  result: AssessmentResult
-): Promise<ShareMethod> {
+  result: AssessmentResult,
+  options?: { message?: string }
+): Promise<ShareOutcome> {
+  const text = options?.message ?? shareMessage(result);
+
   try {
     if (Platform.OS === 'web') {
       const dataUri = await captureRef(viewRef, { ...CAPTURE, result: 'data-uri' });
-      const file = typeof dataUri === 'string' ? dataUriToFile(dataUri, 'braintino-focus-snapshot.png') : null;
+      const file =
+        typeof dataUri === 'string' ? dataUriToFile(dataUri, 'braintino-focus-snapshot.png') : null;
       const nav = globalThis.navigator as Navigator | undefined;
       if (file && nav && typeof nav.share === 'function' && (!nav.canShare || nav.canShare({ files: [file] }))) {
         await nav.share({
           files: [file],
           title: 'Braintino Focus Snapshot',
-          text: shareMessage(result),
+          text,
         });
-        return 'image';
+        return { method: 'image', platform: Platform.OS, completed: true };
       }
-      return shareTextFallback(result);
+      return shareTextFallback(text);
     }
 
     const uri = await captureRef(viewRef, { ...CAPTURE, result: 'tmpfile' });
@@ -70,14 +103,14 @@ export async function shareAssessmentCard(
         dialogTitle: 'Share your Focus Snapshot',
         UTI: 'public.png',
       });
-      return 'image';
+      return { method: 'image', platform: Platform.OS, completed: true };
     }
   } catch (e) {
     if (__DEV__) console.warn('[share] image share failed', e);
   }
 
   try {
-    return await shareTextFallback(result);
+    return await shareTextFallback(text);
   } catch (e) {
     if (__DEV__) console.warn('[share] text share failed', e);
     throw e;

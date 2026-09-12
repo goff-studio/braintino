@@ -47,6 +47,13 @@ export const BADGES: BadgeDef[] = [
     earned: ({ progress }) => progress.streak >= 7,
   },
   {
+    id: 'streak_14',
+    title: '14-day streak',
+    description: 'Practiced two weeks in a row',
+    icon: 'flame-outline',
+    earned: ({ progress }) => progress.streak >= 14,
+  },
+  {
     id: 'streak_30',
     title: '30-day streak',
     description: 'A month of daily practice',
@@ -101,6 +108,19 @@ export const BADGES: BadgeDef[] = [
 
 export function getBadge(id: string): BadgeDef | undefined {
   return BADGES.find((b) => b.id === id);
+}
+
+/** Fill 7 / 14 / 30 streak badges already implied by the current streak. */
+export function backfillShareStreakBadges(
+  earnedBadges: Record<string, string>,
+  streak: number,
+  today: string
+): Record<string, string> {
+  const next = { ...earnedBadges };
+  if (streak >= 7 && !next.streak_7) next.streak_7 = today;
+  if (streak >= 14 && !next.streak_14) next.streak_14 = today;
+  if (streak >= 30 && !next.streak_30) next.streak_30 = today;
+  return next;
 }
 
 /** Badges newly earned by this result (not yet recorded in progress). */

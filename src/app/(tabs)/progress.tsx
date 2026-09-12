@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { AppCard } from '@/components/AppCard';
 import { AppText } from '@/components/AppText';
+import { FriendChallengeCard } from '@/components/FriendChallengeCard';
 import { MilestoneList } from '@/components/MilestoneList';
 import { ProgressRing } from '@/components/ProgressRing';
 import { Reveal } from '@/components/Reveal';
@@ -14,6 +15,7 @@ import { WeeklyChart } from '@/components/WeeklyChart';
 import { gradients } from '@/constants/colors';
 import { spacing } from '@/constants/spacing';
 import { rankForLevel, xpForLevel } from '@/data/levels';
+import { shareableStreakReached } from '@/game/engines/invite';
 import { useTheme } from '@/hooks/useTheme';
 import { useGameStore } from '@/store/useGameStore';
 import type { SkillType } from '@/types/game';
@@ -23,6 +25,8 @@ export default function ProgressScreen() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const progress = useGameStore((s) => s.progress);
+  const lastAssessment = useGameStore((s) => s.lastAssessment);
+  const shareStreak = shareableStreakReached(progress.streak);
 
   const weekKeys = currentWeekKeys();
 
@@ -170,8 +174,18 @@ export default function ProgressScreen() {
         </AppCard>
         </Reveal>
 
+        {shareStreak !== null && (
+          <Reveal index={4}>
+            <FriendChallengeCard
+              surface="progress"
+              streakDays={shareStreak}
+              result={lastAssessment}
+            />
+          </Reveal>
+        )}
+
         {/* Milestones */}
-        <Reveal index={4}>
+        <Reveal index={5}>
         <AppCard style={{ gap: spacing.md }}>
           <AppText variant="bodyLarge" weight="bold">
             Recent Milestones

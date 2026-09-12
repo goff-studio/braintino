@@ -8,6 +8,7 @@ import { AppButton } from '@/components/AppButton';
 import { AppCard } from '@/components/AppCard';
 import { AppText } from '@/components/AppText';
 import { DidYouKnowCard } from '@/components/DidYouKnowCard';
+import { FriendChallengeCard } from '@/components/FriendChallengeCard';
 import { RateAppCard } from '@/components/RateAppCard';
 import { Reveal } from '@/components/Reveal';
 import { RewardedBonusCard } from '@/components/RewardedBonusCard';
@@ -22,6 +23,7 @@ import { getDailyFact } from '@/data/facts';
 import { MINI_GAMES } from '@/data/miniGames';
 import { getTodayDailyPlan } from '@/game/engines/dailyTraining';
 import { streakSaveMessage } from '@/game/engines/habitLoop';
+import { newestShareStreak } from '@/game/engines/invite';
 import { difficultyChangeMessage } from '@/game/engines/difficulty';
 import { consistencyLabel, createFriendlyFeedback } from '@/game/engines/scoring';
 import { isSessionComplete, sessionTotals } from '@/game/engines/session';
@@ -48,6 +50,8 @@ export default function ResultsScreen() {
   const session = useGameStore((s) => s.session);
   const progress = useGameStore((s) => s.progress);
   const lastEarnedBadges = useGameStore((s) => s.lastEarnedBadges);
+  const lastAssessment = useGameStore((s) => s.lastAssessment);
+  const shareStreak = newestShareStreak(lastEarnedBadges.map((b) => b.id));
   const advanceToNextGame = useGameStore((s) => s.advanceToNextGame);
   const abandonSession = useGameStore((s) => s.abandonSession);
   const startPracticeSession = useGameStore((s) => s.startPracticeSession);
@@ -233,6 +237,16 @@ export default function ResultsScreen() {
                 </View>
               ))}
             </AppCard>
+            </Reveal>
+          )}
+
+          {shareStreak !== null && (
+            <Reveal index={2}>
+              <FriendChallengeCard
+                surface="session_results"
+                streakDays={shareStreak}
+                result={lastAssessment}
+              />
             </Reveal>
           )}
 

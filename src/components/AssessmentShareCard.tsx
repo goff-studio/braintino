@@ -13,6 +13,11 @@ type Props = {
   result: AssessmentResult;
 };
 
+type OffscreenProps = {
+  result: AssessmentResult;
+  cardRef: React.Ref<View>;
+};
+
 /**
  * Share Card / 1080 (Figma 1:39). Capture target for the share sheet.
  * Field values come from the ASO contract; layout matches the approved frame.
@@ -101,6 +106,26 @@ export function AssessmentShareCard({ result }: Props) {
       <AppText variant="caption" color={palette.textMuted} style={{ fontSize: 10 }} center>
         {RESULT_CARD_SHORT_DISCLAIMER}
       </AppText>
+    </View>
+  );
+}
+
+/** Off-screen capture host so in-app layouts stay the Figma frames. */
+export function OffscreenAssessmentShareCard({ result, cardRef }: OffscreenProps) {
+  return (
+    <View
+      ref={cardRef}
+      collapsable={false}
+      style={{
+        position: 'absolute',
+        left: -SHARE_CARD_WIDTH - 40,
+        top: 0,
+        width: SHARE_CARD_WIDTH,
+        height: SHARE_CARD_HEIGHT,
+        pointerEvents: 'none',
+      }}
+    >
+      <AssessmentShareCard result={result} />
     </View>
   );
 }

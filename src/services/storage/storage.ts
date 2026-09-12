@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { gameConfig } from '@/constants/gameConfig';
+import { backfillShareStreakBadges } from '@/data/badges';
 import type { AssessmentResult } from '@/types/assessment';
 import type { MiniGameResult } from '@/types/game';
 import type { PlayerProgress } from '@/types/progress';
@@ -119,6 +120,7 @@ function migrateProgressV1toV2(
   if (next.totalSessions >= 100) next.earnedBadges.sessions_100 = next.lastPlayedDate ?? today;
   if (next.streak >= 3) next.earnedBadges.streak_3 = today;
   if (next.streak >= 7) next.earnedBadges.streak_7 = today;
+  if (next.streak >= 14) next.earnedBadges.streak_14 = today;
   if (next.streak >= 30) next.earnedBadges.streak_30 = today;
 
   return next;
@@ -146,7 +148,13 @@ export async function loadSettings(): Promise<PlayerSettings> {
 export async function loadProgress(mode: DifficultyMode): Promise<PlayerProgress> {
   const v2 = await readJson(KEYS.progress);
   if (v2 && (v2 as { schemaVersion?: number }).schemaVersion === 2) {
-    return { ...createDefaultProgress(), ...(v2 as Partial<PlayerProgress>) };
+    const merged = { ...createDefaultProgress(), ...(v2 as Partial<PlayerProgress>) };
+    merged.earnedBadges = backfillShareStreakBadges(
+      merged.earnedBadges,
+      merged.streak,
+      todayKey()
+    );
+    return merged;
   }
 
   const v1 = await readJson(LEGACY_KEYS.progress);
