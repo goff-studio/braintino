@@ -1,6 +1,6 @@
 # Store screenshots
 
-Shot list and captions live in [`../store-listing.md`](../store-listing.md) (source of truth).
+Shot list and captions live in [`../store-listing.md`](../store-listing.md) (source of truth). Caption translations live in the locale listing files (`store-listing.es.md`, `store-listing.pt.md`, `store-listing.de.md`, `store-listing.fr.md`).
 
 Figma: https://www.figma.com/design/ws3siWmGHVRfkt3awyKGBz  
 Frames: `iPhone / Result` (node `1:2`), `Share Card / 1080` (node `1:39`), `iPhone / Difficulty` (node `5:10`)
