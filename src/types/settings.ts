@@ -48,6 +48,11 @@ export type PlayerSettings = {
    * that skipped the new questions. Used for Today copy and difficulty seeding.
    */
   personalPlan: PersonalPlan | null;
+  /**
+   * AppsFlyer organic vs paid tag (issue #11). Defaults to organic until
+   * conversion data says otherwise. Paid UA is unused today.
+   */
+  trafficSource: 'organic' | 'paid';
 };
 
 export const defaultSettings: PlayerSettings = {
@@ -67,4 +72,5 @@ export const defaultSettings: PlayerSettings = {
   firstOpenDate: null,
   d1ReturnLogged: false,
   personalPlan: null,
+  trafficSource: 'organic',
 };

@@ -19,7 +19,6 @@ import { generatePersonalPlan } from '@/game/engines/personalPlan';
 import { useTheme } from '@/hooks/useTheme';
 import {
   ONBOARDING_STEPS,
-  trackOnboardingCompleted,
   trackOnboardingStepViewed,
   trackPlanGenerated,
   type OnboardingNext,
@@ -108,17 +107,17 @@ export default function OnboardingScreen() {
   };
 
   const finish = (next: OnboardingNext) => {
-    completeOnboarding(plan.difficultyMode, {
-      biggerText,
-      reducedMotion: reduceMotionPref,
-      highContrast,
-      personalPlan: plan,
-    });
-    trackOnboardingCompleted({
-      next,
-      plan,
-      reminderEnabled: useGameStore.getState().settings.reminderEnabled,
-    });
+    // Store logs onboarding_completed (funnel + personalization fields + traffic_source).
+    completeOnboarding(
+      plan.difficultyMode,
+      {
+        biggerText,
+        reducedMotion: reduceMotionPref,
+        highContrast,
+        personalPlan: plan,
+      },
+      next
+    );
     if (next === 'assessment') {
       router.replace({ pathname: '/assessment', params: { source: 'onboarding' } });
       return;

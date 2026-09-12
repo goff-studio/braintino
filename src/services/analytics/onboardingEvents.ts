@@ -20,12 +20,8 @@ import type { PersonalPlan } from '@/types/plan';
  *   difficulty_mode: string
  *   plan_title: string
  *
- * onboarding_completed
- *   next: string            calibration | first_session | assessment | today
- *   goal: string
- *   age_band: string
- *   difficulty_mode: string
- *   reminder_enabled: boolean
+ * onboarding_completed is owned by funnelEvents (called from the store) so
+ * traffic_source stays attached; personalization fields are passed through.
  *
  * No medical / diagnostic properties.
  */
@@ -68,16 +64,3 @@ export function trackPlanGenerated(plan: PersonalPlan): void {
   });
 }
 
-export function trackOnboardingCompleted(args: {
-  next: OnboardingNext;
-  plan: PersonalPlan;
-  reminderEnabled: boolean;
-}): void {
-  emit('onboarding_completed', {
-    next: args.next,
-    goal: args.plan.goal,
-    age_band: args.plan.ageBand,
-    difficulty_mode: args.plan.difficultyMode,
-    reminder_enabled: args.reminderEnabled,
-  });
-}

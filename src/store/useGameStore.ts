@@ -17,12 +17,21 @@ import {
   trackAssessmentStarted,
 } from '@/services/analytics/assessmentEvents';
 import {
+  trackFirstSession,
+  trackOnboardingCompleted,
+  type OnboardingExit,
+} from '@/services/analytics/funnelEvents';
+import {
   trackD1Return,
   trackDailyCompleted,
   trackReminderEnabled,
   type ReminderEnabledSource,
 } from '@/services/analytics/habitEvents';
-import { setAnalyticsConsent, trackEvent } from '@/services/analytics/analytics';
+import { setAnalyticsConsent, setTrafficSourceProperty, trackEvent } from '@/services/analytics/analytics';
+import {
+  rememberTrafficSource,
+  type TrafficSource,
+} from '@/services/analytics/trafficSource';
 import { AppsFlyerService } from '@/services/attribution/AppsFlyerService';
 import { setSoundEnabled } from '@/services/audio/audio';
 import { PurchaseService } from '@/services/monetization/PurchaseService';
@@ -79,6 +88,8 @@ type GameStore = {
   hydrate: () => Promise<void>;
   /** Log d1_return after analytics init (once per install). */
   maybeTrackD1Return: () => void;
+  /** Persist AppsFlyer organic vs paid and set the Firebase user property. */
+  applyTrafficSource: (source: TrafficSource) => void;
   updateSettings: (partial: Partial<PlayerSettings>) => void;
   /**
    * Turn the practice reminder on/off, optionally setting frequency/time in
@@ -90,7 +101,11 @@ type GameStore = {
   setPracticeReminder: (enabled: boolean, config?: ReminderConfig) => Promise<ReminderPermission>;
   /** Change reminder frequency/time; reschedules if the reminder is on. */
   updateReminderConfig: (config: ReminderConfig) => void;
-  completeOnboarding: (mode: DifficultyMode, prefs: Partial<PlayerSettings>) => void;
+  completeOnboarding: (
+    mode: DifficultyMode,
+    prefs: Partial<PlayerSettings>,
+    next?: OnboardingExit
+  ) => void;
   /**
    * Seed the starting level from the onboarding warm-up staircase: the
    * calibrated exercise starts at the placement, every other exercise
@@ -150,6 +165,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (nextSettings !== settings) {
       storage.saveSettings(nextSettings);
     }
+    rememberTrafficSource(nextSettings.trafficSource);
 
     set({ progress, settings: nextSettings, adFree, lastAssessment, hydrated: true });
     // Reconcile the local reminder schedule with settings: refreshes the
@@ -184,6 +200,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
       completedDailyYesterday: progress.lastDailyCompletedDate === yesterdayKey(),
     });
     get().updateSettings({ d1ReturnLogged: true });
+  },
+
+  applyTrafficSource: (source) => {
+    rememberTrafficSource(source);
+    void setTrafficSourceProperty(source);
+    if (get().settings.trafficSource !== source) {
+      get().updateSettings({ trafficSource: source });
+    }
   },
 
   updateSettings: (partial) => {
@@ -258,11 +282,19 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }
   },
 
-  completeOnboarding: (mode, prefs) => {
+  completeOnboarding: (mode, prefs, next = 'home') => {
     get().updateSettings({
       ...prefs,
       difficultyMode: mode,
       onboardingDone: true,
+    });
+    const plan = prefs.personalPlan ?? get().settings.personalPlan;
+    trackOnboardingCompleted({
+      mode,
+      next,
+      reminderEnabled: get().settings.reminderEnabled,
+      goal: plan?.goal,
+      ageBand: plan?.ageBand,
     });
   },
 
@@ -384,6 +416,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
         mode: session.mode,
         total_sessions: progress.totalSessions,
       });
+      if (progress.totalSessions === 1) {
+        trackFirstSession({ mode: session.mode });
+      }
       if (session.mode === 'daily' && progress.lastDailyCompletedDate !== today) {
         progress.streak =
           progress.lastDailyCompletedDate === yesterdayKey() ? progress.streak + 1 : 1;
