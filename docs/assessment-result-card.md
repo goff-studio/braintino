@@ -55,6 +55,8 @@ ASO-locked `band_label` / `band_blurb` thresholds (entertainment only, not clini
 | Field | Notes |
 | --- | --- |
 | `share_message` | `I scored {score}/100 on Braintino's Focus Snapshot. Entertainment only — not a diagnosis.` |
-| `share_method` | Analytics only: `image` (captured placeholder or future Figma card) or `fallback_text`. |
+| `share_method` | Analytics only: `image` (captured Focus Snapshot card) or `fallback_text`. |
+
+Friend-challenge copy appends App Store + Play URLs and a “beat it” line. It does not rename on-card fields. See `docs/invite-share.md`.
 
 See `docs/assessment-analytics.md` for `assessment_started`, `assessment_completed`, and `result_shared`.

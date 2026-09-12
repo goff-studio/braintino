@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppButton } from '@/components/AppButton';
 import { AppCard } from '@/components/AppCard';
 import { AppText } from '@/components/AppText';
-import { AssessmentShareCard, SHARE_CARD_HEIGHT, SHARE_CARD_WIDTH } from '@/components/AssessmentShareCard';
+import { OffscreenAssessmentShareCard } from '@/components/AssessmentShareCard';
 import { AssessmentSkillBar } from '@/components/AssessmentSkillBar';
 import { ScreenBackground } from '@/components/ScreenBackground';
 import { palette } from '@/constants/colors';
@@ -13,8 +13,7 @@ import { radius, spacing } from '@/constants/spacing';
 import { RESULT_SCREEN_DISCLAIMER } from '@/game/engines/assessment';
 import { useTheme } from '@/hooks/useTheme';
 import { tapHaptic } from '@/services/haptics/haptics';
-import { trackResultShared } from '@/services/analytics/assessmentEvents';
-import { shareAssessmentCard } from '@/services/share/shareCard';
+import { presentShare } from '@/services/share/shareLoop';
 import { useGameStore } from '@/store/useGameStore';
 
 /**
@@ -34,12 +33,17 @@ export default function AssessmentResultScreen() {
     router.replace(onboardingDone ? '/(tabs)' : '/onboarding');
   };
 
-  const onShare = async () => {
-    if (sharing || !cardRef.current) return;
+  const onShare = async (kind: 'result' | 'invite') => {
+    if (sharing || !result) return;
+    if (kind === 'result' && !cardRef.current) return;
     setSharing(true);
     try {
-      const method = await shareAssessmentCard(cardRef, result!);
-      trackResultShared(result!, method);
+      await presentShare({
+        kind,
+        surface: 'assessment_result',
+        viewRef: cardRef.current,
+        result,
+      });
     } catch {
       // Share cancel / unavailable — do not invent medical copy.
     } finally {
@@ -62,20 +66,7 @@ export default function AssessmentResultScreen() {
 
   return (
     <ScreenBackground gradient={[palette.appBg, palette.appBg]}>
-      <View
-        ref={cardRef}
-        collapsable={false}
-        style={{
-          position: 'absolute',
-          left: -SHARE_CARD_WIDTH - 40,
-          top: 0,
-          width: SHARE_CARD_WIDTH,
-          height: SHARE_CARD_HEIGHT,
-          pointerEvents: 'none',
-        }}
-      >
-        <AssessmentShareCard result={result} />
-      </View>
+      <OffscreenAssessmentShareCard result={result} cardRef={cardRef} />
 
       <ScrollView
         contentContainerStyle={{
@@ -110,7 +101,7 @@ export default function AssessmentResultScreen() {
             disabled={sharing}
             onPress={() => {
               tapHaptic();
-              void onShare();
+              void onShare('result');
             }}
           >
             <AppText variant="caption" weight="semiBold" color={colors.primary} style={{ fontSize: 15 }}>
@@ -189,7 +180,7 @@ export default function AssessmentResultScreen() {
           disabled={sharing}
           onPress={() => {
             tapHaptic();
-            void onShare();
+            void onShare('result');
           }}
           style={{
             height: 52,
@@ -202,6 +193,30 @@ export default function AssessmentResultScreen() {
         >
           <AppText variant="button" weight="semiBold" color={colors.textOnDark} style={{ fontSize: 16 }}>
             Share your snapshot
+          </AppText>
+        </Pressable>
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Challenge a friend"
+          disabled={sharing}
+          onPress={() => {
+            tapHaptic();
+            void onShare('invite');
+          }}
+          style={{
+            height: 52,
+            borderRadius: 16,
+            backgroundColor: colors.card,
+            borderWidth: 1.5,
+            borderColor: colors.primary,
+            alignItems: 'center',
+            justifyContent: 'center',
+            opacity: sharing ? 0.45 : 1,
+          }}
+        >
+          <AppText variant="button" weight="semiBold" color={colors.primary} style={{ fontSize: 16 }}>
+            Challenge a friend
           </AppText>
         </Pressable>
 
