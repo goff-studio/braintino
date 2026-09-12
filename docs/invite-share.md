@@ -21,6 +21,8 @@ Practice / entertainment only — payloads and share copy must not imply a medic
 
 Inbound `braintino://assessment?source=deeplink` already opens Focus Snapshot (expo-router scheme). Universal / App Links are not configured, so invites use store URLs for new installs rather than a custom-scheme link in the message.
 
+On web, if `navigator.share` is missing (typical desktop Chrome), the invite text is copied and shown in an alert so the loop still delivers store URLs.
+
 Store URLs: `src/constants/storeLinks.ts` (`id6787367632`, `com.techtory.braintino`).
 
 ## Events

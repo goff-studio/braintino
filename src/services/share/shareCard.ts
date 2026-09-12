@@ -1,4 +1,4 @@
-import { Platform, Share } from 'react-native';
+import { Alert, Platform, Share } from 'react-native';
 import { captureRef, type CaptureOptions } from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
 import { SHARE_CARD_HEIGHT, SHARE_CARD_WIDTH } from '@/components/AssessmentShareCard';
@@ -49,12 +49,44 @@ function outcomeFromShareResult(
   };
 }
 
+async function copyInviteToClipboard(message: string): Promise<boolean> {
+  try {
+    const nav = globalThis.navigator as Navigator | undefined;
+    if (nav?.clipboard && typeof nav.clipboard.writeText === 'function') {
+      await nav.clipboard.writeText(message);
+      return true;
+    }
+  } catch {
+    // Permissions / insecure context — the alert still shows the text.
+  }
+  return false;
+}
+
+/** Desktop web often has no share sheet; copy + alert still delivers the invite. */
+async function presentCopiedInvite(message: string): Promise<ShareOutcome> {
+  const copied = await copyInviteToClipboard(message);
+  Alert.alert(
+    'Invite ready',
+    copied ? `${message}\n\nCopied — paste it to a friend.` : message
+  );
+  return { method: 'fallback_text', platform: Platform.OS, completed: true };
+}
+
 async function shareTextFallback(
   message: string,
   title = 'Braintino Focus Snapshot'
 ): Promise<ShareOutcome> {
-  const shareResult = await Share.share({ message, title });
-  return outcomeFromShareResult('fallback_text', shareResult);
+  const nav = globalThis.navigator as Navigator | undefined;
+  if (Platform.OS === 'web' && typeof nav?.share !== 'function') {
+    return presentCopiedInvite(message);
+  }
+  try {
+    const shareResult = await Share.share({ message, title });
+    return outcomeFromShareResult('fallback_text', shareResult);
+  } catch (e) {
+    if (Platform.OS === 'web') return presentCopiedInvite(message);
+    throw e;
+  }
 }
 
 /** Prefill-only invite / streak text + store URLs (issue #7). */
