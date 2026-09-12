@@ -5,7 +5,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { AppButton } from '@/components/AppButton';
 import { AppCard } from '@/components/AppCard';
 import { AppText } from '@/components/AppText';
-import { gameConfig } from '@/constants/gameConfig';
 import { spacing } from '@/constants/spacing';
 import { useTheme } from '@/hooks/useTheme';
 
@@ -38,7 +37,7 @@ export function AssessmentEntryCard({ onPress, lastScore }: Props) {
             {t('assessment.name')}
           </AppText>
           <AppText variant="caption" color={colors.textSoft}>
-            {t('assessment.entryBody', { duration: gameConfig.assessment.durationLabel })}
+            {t('assessment.entryBody', { duration: t('assessment.duration') })}
           </AppText>
         </View>
       </View>

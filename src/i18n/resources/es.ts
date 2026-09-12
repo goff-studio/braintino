@@ -267,6 +267,7 @@ export const es: TranslationShape = {
   },
   assessment: {
     name: 'Instantánea de foco',
+    duration: 'unos 90 segundos',
     brandCaps: 'BRAINTINO',
     intro:
       'Una prueba corta de atención — {{duration}}. Una puntuación lúdica de foco, velocidad y constancia.',

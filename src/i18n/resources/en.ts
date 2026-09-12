@@ -261,6 +261,7 @@ export const en = {
   },
   assessment: {
     name: 'Focus Snapshot',
+    duration: 'about 90 seconds',
     brandCaps: 'BRAINTINO',
     intro:
       'One short attention check — {{duration}}. See a playful score for focus, speed, and consistency.',

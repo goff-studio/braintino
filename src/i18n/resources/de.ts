@@ -267,6 +267,7 @@ export const de: TranslationShape = {
   },
   assessment: {
     name: 'Fokus-Snapshot',
+    duration: 'etwa 90 Sekunden',
     brandCaps: 'BRAINTINO',
     intro:
       'Ein kurzer Aufmerksamkeitscheck — {{duration}}. Eine spielerische Punktzahl für Fokus, Tempo und Beständigkeit.',

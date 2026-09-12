@@ -11,7 +11,6 @@ import { AssessmentDisclaimer } from '@/components/AssessmentDisclaimer';
 import { BrandMark } from '@/components/BrandMark';
 import { Reveal } from '@/components/Reveal';
 import { ScreenBackground } from '@/components/ScreenBackground';
-import { gameConfig } from '@/constants/gameConfig';
 import { gradients } from '@/constants/colors';
 import { spacing } from '@/constants/spacing';
 import { parseAssessmentSource } from '@/game/engines/assessment';
@@ -54,7 +53,7 @@ export default function AssessmentIntroScreen() {
             {t('assessment.name')}
           </AppText>
           <AppText variant="body" color={colors.textSoft} center>
-            {t('assessment.intro', { duration: gameConfig.assessment.durationLabel })}
+            {t('assessment.intro', { duration: t('assessment.duration') })}
           </AppText>
         </Reveal>
 

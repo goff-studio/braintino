@@ -267,6 +267,7 @@ export const fr: TranslationShape = {
   },
   assessment: {
     name: 'Instantané de focus',
+    duration: 'environ 90 secondes',
     brandCaps: 'BRAINTINO',
     intro:
       'Un court contrôle d’attention — {{duration}}. Un score ludique de focus, de vitesse et de régularité.',
