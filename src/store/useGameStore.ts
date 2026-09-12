@@ -298,10 +298,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
       difficultyMode: mode,
       onboardingDone: true,
     });
+    const plan = prefs.personalPlan ?? get().settings.personalPlan;
     trackOnboardingCompleted({
       mode,
       next,
       reminderEnabled: get().settings.reminderEnabled,
+      goal: plan?.goal,
+      ageBand: plan?.ageBand,
     });
   },
 
@@ -342,7 +345,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   startDailySession: () => {
     const today = todayKey();
-    const plan = getTodayDailyPlan(today, get().progress);
+    const { progress, settings } = get();
+    const plan = getTodayDailyPlan(today, progress, settings.personalPlan);
     const session = createDailySession(plan.games, today);
     set({ session, lastResult: null });
     return session;
@@ -444,47 +448,47 @@ export const useGameStore = create<GameStore>((set, get) => ({
       if (progress.totalSessions === 1) {
         trackFirstSession({ mode: session.mode });
       }
-        if (session.mode === 'daily' && progress.lastDailyCompletedDate !== today) {
-          progress.streak =
-            progress.lastDailyCompletedDate === yesterdayKey() ? progress.streak + 1 : 1;
-          progress.lastDailyCompletedDate = today;
-          progress.dailyHistory = [...progress.dailyHistory, today].slice(-60);
-          const plan = getTodayDailyPlan(today, progress);
-          trackDailyCompleted({
-            streak: progress.streak,
-            totalSessions: progress.totalSessions,
-            planTitle: plan.title,
-          });
-          if (state.settings.reminderEnabled) {
-            scheduleReminder(
-              state.settings.reminderFrequency,
-              state.settings.reminderHour,
-              state.settings.reminderMinute,
-              state.settings.reminderAnchor ?? today,
-              reminderContentFor(progress, today)
-            ).catch(() => {});
-          }
+      if (session.mode === 'daily' && progress.lastDailyCompletedDate !== today) {
+        progress.streak =
+          progress.lastDailyCompletedDate === yesterdayKey() ? progress.streak + 1 : 1;
+        progress.lastDailyCompletedDate = today;
+        progress.dailyHistory = [...progress.dailyHistory, today].slice(-60);
+        const plan = getTodayDailyPlan(today, progress, state.settings.personalPlan);
+        trackDailyCompleted({
+          streak: progress.streak,
+          totalSessions: progress.totalSessions,
+          planTitle: plan.title,
+        });
+        if (state.settings.reminderEnabled) {
+          scheduleReminder(
+            state.settings.reminderFrequency,
+            state.settings.reminderHour,
+            state.settings.reminderMinute,
+            state.settings.reminderAnchor ?? today,
+            reminderContentFor(progress, today)
+          ).catch(() => {});
         }
-        if (
-          session.mode === 'weekly' &&
-          session.weekKey &&
-          progress.lastWeeklyChallengeWeek !== session.weekKey
-        ) {
-          progress.lastWeeklyChallengeWeek = session.weekKey;
-          const totals = sessionTotals(session);
-          const weeklyPlan = getWeeklyChallengePlan(progress, {
-            onboardingDone: state.settings.onboardingDone,
-            lastDailyCompletedDate: progress.lastDailyCompletedDate,
-            globalLevel: progress.globalLevel,
-          });
-          trackWeeklyChallengeCompleted({
-            weekKey: session.weekKey,
-            title: weeklyPlan.title,
-            twist: session.twist ?? weeklyPlan.twist,
-            avgAccuracy: totals.avgAccuracy,
-            totalSessions: progress.totalSessions,
-          });
-        }
+      }
+      if (
+        session.mode === 'weekly' &&
+        session.weekKey &&
+        progress.lastWeeklyChallengeWeek !== session.weekKey
+      ) {
+        progress.lastWeeklyChallengeWeek = session.weekKey;
+        const totals = sessionTotals(session);
+        const weeklyPlan = getWeeklyChallengePlan(progress, {
+          onboardingDone: state.settings.onboardingDone,
+          lastDailyCompletedDate: progress.lastDailyCompletedDate,
+          globalLevel: progress.globalLevel,
+        });
+        trackWeeklyChallengeCompleted({
+          weekKey: session.weekKey,
+          title: weeklyPlan.title,
+          twist: session.twist ?? weeklyPlan.twist,
+          avgAccuracy: totals.avgAccuracy,
+          totalSessions: progress.totalSessions,
+        });
+      }
     }
 
     // Milestones — checked against the updated snapshot.

@@ -1,3 +1,5 @@
+import type { PersonalPlan } from '@/types/plan';
+
 export type DifficultyMode = 'relaxed' | 'balanced' | 'challenging';
 
 export type ReminderFrequency = 'daily' | 'everyOtherDay' | 'weekdays';
@@ -42,6 +44,11 @@ export type PlayerSettings = {
   /** Whether d1_return has already been logged for this install. */
   d1ReturnLogged: boolean;
   /**
+   * Clever-lite personal plan from onboarding (issue #5). Null for installs
+   * that skipped the new questions. Used for Today copy and difficulty seeding.
+   */
+  personalPlan: PersonalPlan | null;
+  /**
    * AppsFlyer organic vs paid tag (issue #11). Defaults to organic until
    * conversion data says otherwise. Paid UA is unused today.
    */
@@ -64,5 +71,6 @@ export const defaultSettings: PlayerSettings = {
   reminderAnchor: null,
   firstOpenDate: null,
   d1ReturnLogged: false,
+  personalPlan: null,
   trafficSource: 'organic',
 };

@@ -7,6 +7,7 @@ import { AppButton } from '@/components/AppButton';
 import { AppCard } from '@/components/AppCard';
 import { AppText } from '@/components/AppText';
 import { BrandMark } from '@/components/BrandMark';
+import { PersonalPlanCard } from '@/components/PersonalPlanCard';
 import { Reveal } from '@/components/Reveal';
 import { ScreenBackground } from '@/components/ScreenBackground';
 import { StatPill } from '@/components/StatPill';
@@ -51,6 +52,7 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { colors, settings } = useTheme();
   const progress = useGameStore((s) => s.progress);
+  const personalPlan = useGameStore((s) => s.settings.personalPlan);
   const updateSettings = useGameStore((s) => s.updateSettings);
   const setPracticeReminder = useGameStore((s) => s.setPracticeReminder);
   const updateReminderConfig = useGameStore((s) => s.updateReminderConfig);
@@ -126,7 +128,13 @@ export default function ProfileScreen() {
         </AppCard>
         </Reveal>
 
-        <Reveal index={2}>
+        {personalPlan && (
+          <Reveal index={2}>
+            <PersonalPlanCard plan={personalPlan} compact />
+          </Reveal>
+        )}
+
+        <Reveal index={personalPlan ? 3 : 2}>
         <AppCard style={{ gap: spacing.xs }}>
           <AppText variant="bodyLarge" weight="bold" style={{ marginBottom: spacing.xs }}>
             Preferences
