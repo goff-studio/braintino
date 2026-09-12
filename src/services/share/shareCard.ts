@@ -63,12 +63,18 @@ async function copyInviteToClipboard(message: string): Promise<boolean> {
 }
 
 /** Desktop web often has no share sheet; copy + alert still delivers the invite. */
+function notifyInviteReady(message: string, copied: boolean): void {
+  const body = copied ? `${message}\n\nCopied — paste it to a friend.` : message;
+  if (Platform.OS === 'web' && typeof globalThis.alert === 'function') {
+    globalThis.alert(`Invite ready\n\n${body}`);
+    return;
+  }
+  Alert.alert('Invite ready', body);
+}
+
 async function presentCopiedInvite(message: string): Promise<ShareOutcome> {
   const copied = await copyInviteToClipboard(message);
-  Alert.alert(
-    'Invite ready',
-    copied ? `${message}\n\nCopied — paste it to a friend.` : message
-  );
+  notifyInviteReady(message, copied);
   return { method: 'fallback_text', platform: Platform.OS, completed: true };
 }
 
@@ -76,17 +82,24 @@ async function shareTextFallback(
   message: string,
   title = 'Braintino Focus Snapshot'
 ): Promise<ShareOutcome> {
-  const nav = globalThis.navigator as Navigator | undefined;
-  if (Platform.OS === 'web' && typeof nav?.share !== 'function') {
+  if (Platform.OS === 'web') {
+    const nav = globalThis.navigator as Navigator | undefined;
+    if (typeof nav?.share === 'function') {
+      try {
+        await nav.share({ title, text: message });
+        return { method: 'fallback_text', platform: Platform.OS, completed: true };
+      } catch (e) {
+        const name = e instanceof Error ? e.name : '';
+        if (name === 'AbortError') {
+          return { method: 'fallback_text', platform: Platform.OS, completed: false };
+        }
+      }
+    }
     return presentCopiedInvite(message);
   }
-  try {
-    const shareResult = await Share.share({ message, title });
-    return outcomeFromShareResult('fallback_text', shareResult);
-  } catch (e) {
-    if (Platform.OS === 'web') return presentCopiedInvite(message);
-    throw e;
-  }
+
+  const shareResult = await Share.share({ message, title });
+  return outcomeFromShareResult('fallback_text', shareResult);
 }
 
 /** Prefill-only invite / streak text + store URLs (issue #7). */
