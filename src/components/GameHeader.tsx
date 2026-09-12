@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,6 +19,7 @@ type Props = {
 };
 
 export function GameHeader({ title, round, totalRounds, score, onPause, onDark }: Props) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const textColor = onDark ? colors.textOnDark : colors.text;
@@ -35,7 +37,7 @@ export function GameHeader({ title, round, totalRounds, score, onPause, onDark }
     >
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel="Pause"
+        accessibilityLabel={t('common.pause')}
         onPress={() => {
           tapHaptic();
           onPause();

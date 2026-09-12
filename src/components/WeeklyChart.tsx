@@ -1,16 +1,17 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { spacing } from '@/constants/spacing';
 import { useTheme } from '@/hooks/useTheme';
 import { currentWeekKeys, todayKey } from '@/utils/date';
 import { AppText } from './AppText';
 
-const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 const MAX_MINUTES = 20;
 const BAR_HEIGHT = 72;
 
 /** Seven procedural bars of practice minutes for the current week. */
 export function WeeklyChart({ minutesByDate }: { minutesByDate: Record<string, number> }) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const today = todayKey();
   const keys = currentWeekKeys();
@@ -26,7 +27,10 @@ export function WeeklyChart({ minutesByDate }: { minutesByDate: Record<string, n
           <View
             key={key}
             style={{ flex: 1, alignItems: 'center', gap: spacing.xs }}
-            accessibilityLabel={`${DAY_LABELS[i]}: ${minutes} minutes`}
+            accessibilityLabel={t('progress.weekdayMinutes', {
+              day: t(`progress.weekdays.${i}`),
+              minutes,
+            })}
           >
             <View
               style={{
@@ -52,7 +56,7 @@ export function WeeklyChart({ minutesByDate }: { minutesByDate: Record<string, n
               )}
             </View>
             <AppText variant="caption" color={isToday ? colors.text : colors.textMuted} weight={isToday ? 'bold' : 'medium'}>
-              {DAY_LABELS[i]}
+              {t(`progress.weekdays.${i}`)}
             </AppText>
           </View>
         );

@@ -1,5 +1,6 @@
 import { useRouter } from 'expo-router';
 import React, { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,11 +15,13 @@ import { gradients } from '@/constants/colors';
 import { spacing, tapTarget } from '@/constants/spacing';
 import { MINI_GAMES } from '@/data/miniGames';
 import { getStartingLevel } from '@/game/engines/difficulty';
-import { getWeeklyChallengePlan, weeklyTwistLabel } from '@/game/engines/weeklyChallenge';
+import { getWeeklyChallengePlan } from '@/game/engines/weeklyChallenge';
+import { localizedGameTitle, localizedSkillLabel, localizedWeeklyTitle, localizedWeeklyTwist } from '@/i18n/copy';
 import { useTheme } from '@/hooks/useTheme';
 import { useGameStore } from '@/store/useGameStore';
 
 export default function WeeklyChallengeScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors, settings } = useTheme();
@@ -37,7 +40,7 @@ export default function WeeklyChallengeScreen() {
   );
 
   const plan = session?.mode === 'weekly' ? session.plan : fallback.games;
-  const title = fallback.title;
+  const title = localizedWeeklyTitle(fallback.twist, t);
   const twist = session?.twist ?? fallback.twist;
 
   return (
@@ -53,7 +56,7 @@ export default function WeeklyChallengeScreen() {
         <Reveal index={0} style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Back"
+            accessibilityLabel={t('common.back')}
             onPress={() => router.back()}
             style={{
               width: tapTarget.min,
@@ -69,7 +72,7 @@ export default function WeeklyChallengeScreen() {
           <View style={{ flex: 1 }}>
             <AppText variant="title">{title}</AppText>
             <AppText variant="body" color={colors.textSoft}>
-              Weekly challenge · 3 exercises · {weeklyTwistLabel(twist)}
+              {t('weekly.headerMeta', { twist: localizedWeeklyTwist(twist, t) })}
             </AppText>
           </View>
         </Reveal>
@@ -117,10 +120,10 @@ export default function WeeklyChallengeScreen() {
                     </View>
                     <View style={{ flex: 1, gap: 4 }}>
                       <AppText variant="bodyLarge" weight="bold">
-                        {game.title}
+                        {localizedGameTitle(id, t)}
                       </AppText>
                       <View style={{ flexDirection: 'row', gap: spacing.sm, alignItems: 'center', flexWrap: 'wrap' }}>
-                        <SkillChip skill={game.skill} labelOverride={game.skillLabel} />
+                        <SkillChip skill={game.skill} labelOverride={localizedSkillLabel(game.skill, t)} />
                         <LevelBadge level={level} compact />
                         <AppText variant="caption" color={colors.textSoft}>
                           ~{Math.round((game.baseDurationSec / 60) * 10) / 10}m
@@ -136,7 +139,7 @@ export default function WeeklyChallengeScreen() {
 
         <Reveal index={4}>
           <AppButton
-            title="Begin Challenge"
+            title={t('weekly.begin')}
             icon="trophy-outline"
             onPress={() => {
               const s =
@@ -149,7 +152,7 @@ export default function WeeklyChallengeScreen() {
         </Reveal>
         <Reveal index={5}>
           <AppText variant="caption" color={colors.textSoft} center>
-            Same scoring as daily practice — a mode twist, not a new test.
+            {t('weekly.footer')}
           </AppText>
         </Reveal>
       </ScrollView>

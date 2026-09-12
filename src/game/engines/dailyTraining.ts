@@ -1,4 +1,4 @@
-import { WEEKDAY_THEMES } from '@/data/dailyPlans';
+import { WEEKDAY_THEMES, type DailyThemeId } from '@/data/dailyPlans';
 import { MINI_GAME_IDS, MINI_GAMES } from '@/data/miniGames';
 import type { MiniGameId } from '@/types/game';
 import type { PersonalPlan } from '@/types/plan';
@@ -9,6 +9,7 @@ import { rngFromString, shuffle } from '@/utils/random';
 export type DailyPlan = {
   dateKey: string;
   title: string;
+  themeId?: DailyThemeId | 'personal';
   games: MiniGameId[];
 };
 
@@ -41,6 +42,7 @@ export function getTodayDailyPlan(
     return {
       dateKey,
       title: personalPlan.title,
+      themeId: 'personal',
       games: [...personalPlan.recommendedGames],
     };
   }
@@ -69,7 +71,7 @@ export function getTodayDailyPlan(
     games = [games[0], games[2], games[1]];
   }
 
-  return { dateKey, title: theme.title, games: games.slice(0, 3) };
+  return { dateKey, title: theme.title, themeId: theme.id, games: games.slice(0, 3) };
 }
 
 function getRawPlanGames(dateKey: string, unlocked: MiniGameId[]): MiniGameId[] {

@@ -1,5 +1,6 @@
 import { useRouter } from 'expo-router';
 import React, { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -20,14 +21,13 @@ import { MINI_GAMES } from '@/data/miniGames';
 import { getTodayDailyPlan } from '@/game/engines/dailyTraining';
 import { streakSaveMessage } from '@/game/engines/habitLoop';
 import { getWeeklyChallengePlan } from '@/game/engines/weeklyChallenge';
+import { formatTodayLabel, localizedDailyTitle, localizedGameShort } from '@/i18n/copy';
 import { useTheme } from '@/hooks/useTheme';
 import { useGameStore } from '@/store/useGameStore';
 import { currentWeekKeys, todayKey, tomorrowKey } from '@/utils/date';
 
-const WEEKDAYS = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
-const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-
 export default function TodayScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
@@ -61,8 +61,8 @@ export default function TodayScreen() {
     router.push('/weekly');
   };
 
-  const now = new Date();
-  const dateLabel = `${WEEKDAYS[now.getDay()]}, ${MONTHS[now.getMonth()]} ${now.getDate()}`;
+  const dateLabel = formatTodayLabel(new Date());
+  const planTitle = localizedDailyTitle(plan, personalPlan, t);
 
   const weeklyMinutes = useMemo(() => {
     const week = currentWeekKeys();
@@ -85,18 +85,18 @@ export default function TodayScreen() {
             <AppText variant="caption" weight="semiBold" color={colors.textMuted} style={{ letterSpacing: 0.8 }}>
               {dateLabel}
             </AppText>
-            <AppText variant="display">Today</AppText>
+            <AppText variant="display">{t('today.title')}</AppText>
           </View>
           <View style={{ flexDirection: 'row', gap: spacing.sm, paddingBottom: spacing.xs }}>
             <StatPill
               icon="flame-outline"
               value={String(progress.streak)}
-              accessibilityLabel={`${progress.streak}-day streak`}
+              accessibilityLabel={t('common.dayStreak', { count: progress.streak })}
             />
             <StatPill
               icon="trending-up"
-              value={`Lv ${progress.globalLevel}`}
-              accessibilityLabel={`Practice level ${progress.globalLevel}`}
+              value={t('common.levelShort', { level: progress.globalLevel })}
+              accessibilityLabel={t('today.practiceLevelA11y', { level: progress.globalLevel })}
             />
           </View>
         </Reveal>
@@ -117,15 +117,15 @@ export default function TodayScreen() {
               color={colors.textOnDarkSoft}
               style={{ letterSpacing: 0.6 }}
             >
-              DAILY PRACTICE
+              {t('daily.kicker')}
             </AppText>
             <AppText variant="title" color={colors.textOnDark}>
-              Today’s Session
+              {t('daily.title')}
             </AppText>
             <AppText variant="body" color={colors.textOnDarkSoft}>
               {dailyDone
-                ? 'Completed · tomorrow is ready'
-                : `${plan.title} · 3 exercises · about 5 minutes`}
+                ? t('daily.completedMeta')
+                : t('daily.meta', { title: planTitle })}
             </AppText>
           </View>
 
@@ -135,7 +135,7 @@ export default function TodayScreen() {
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
                   <Ionicons name="checkmark-circle" size={24} color={colors.accent} />
                   <AppText variant="bodyLarge" weight="bold" color={colors.textOnDark}>
-                    Today’s session completed
+                    {t('daily.completed')}
                   </AppText>
                 </View>
                 <AppText variant="caption" color={colors.textOnDarkSoft} center>
@@ -167,14 +167,14 @@ export default function TodayScreen() {
                         color={colors.textOnDark}
                       />
                       <AppText variant="caption" weight="semiBold" color={colors.textOnDarkSoft}>
-                        {game.shortTitle}
+                        {localizedGameShort(id, t)}
                       </AppText>
                     </View>
                   );
                 })}
               </View>
               <AppButton
-                title="Start Daily Practice"
+                title={t('daily.start')}
                 icon="play"
                 tone="lime"
                 onPress={() => {
@@ -191,13 +191,13 @@ export default function TodayScreen() {
         <View style={{ gap: spacing.md }}>
           <View style={{ flexDirection: 'row', gap: spacing.md }}>
             <Reveal index={2} style={{ flex: 1 }}>
-              <StatCard icon="time-outline" value={`${weeklyMinutes}m`} label="This week" style={{ flex: 1 }} />
+              <StatCard icon="time-outline" value={t('common.minutesShort', { count: weeklyMinutes })} label={t('today.thisWeek')} style={{ flex: 1 }} />
             </Reveal>
             <Reveal index={3} style={{ flex: 1 }}>
               <StatCard
                 icon="flame-outline"
                 value={String(progress.streak)}
-                label="Practice streak"
+                label={t('today.practiceStreak')}
                 color={colors.warning}
                 style={{ flex: 1 }}
               />
@@ -208,7 +208,7 @@ export default function TodayScreen() {
               <StatCard
                 icon="checkmark-done-outline"
                 value={String(progress.totalSessions)}
-                label="Sessions"
+                label={t('today.sessions')}
                 color={colors.success}
                 style={{ flex: 1 }}
               />
@@ -217,7 +217,7 @@ export default function TodayScreen() {
               <StatCard
                 icon="trending-up"
                 value={String(progress.globalLevel)}
-                label="Practice level"
+                label={t('today.practiceLevel')}
                 color={colors.secondary}
                 style={{ flex: 1 }}
               />
@@ -239,22 +239,22 @@ export default function TodayScreen() {
                     color={colors.textMuted}
                     style={{ letterSpacing: 0.6 }}
                   >
-                    FREE PLAY
+                    {t('today.freePlayKicker')}
                   </AppText>
                   <AppText variant="bodyLarge" weight="bold">
-                    Keep going
+                    {t('today.keepGoing')}
                   </AppText>
                   <AppText variant="caption" color={colors.textSoft}>
-                    Today’s session is done. Play any unlocked exercise, or take a Focus Snapshot.
+                    {t('today.keepGoingBody')}
                   </AppText>
                 </View>
                 <AppButton
-                  title="Free play an exercise"
+                  title={t('today.freePlayExercise')}
                   icon="grid-outline"
                   onPress={() => router.push('/practice')}
                 />
                 <AppButton
-                  title={lastAssessment ? 'Retake Focus Snapshot' : 'Take Focus Snapshot'}
+                  title={lastAssessment ? t('today.retakeSnapshot') : t('today.takeSnapshot')}
                   icon="flash-outline"
                   variant="secondary"
                   onPress={() => router.push({ pathname: '/assessment', params: { source: 'today' } })}
@@ -275,7 +275,7 @@ export default function TodayScreen() {
             </Reveal>
             <Reveal index={8}>
               <AppButton
-                title="Free play exercises"
+                title={t('today.freePlayExercises')}
                 icon="grid-outline"
                 variant="secondary"
                 onPress={() => router.push('/practice')}

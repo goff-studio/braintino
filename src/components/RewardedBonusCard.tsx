@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { spacing } from '@/constants/spacing';
@@ -20,6 +21,7 @@ type Phase = 'idle' | 'showing' | 'earned' | 'unavailable';
  * src/services/monetization/README.md.
  */
 export function RewardedBonusCard() {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const grantBonusXp = useGameStore((s) => s.grantBonusXp);
   const adFree = useGameStore((s) => s.adFree);
@@ -49,11 +51,11 @@ export function RewardedBonusCard() {
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
           <Ionicons name="flash-outline" size={20} color={colors.success} />
           <AppText variant="bodyLarge" weight="bold">
-            +{REWARDED_BONUS_XP} XP added
+            {t('bonus.earned', { xp: REWARDED_BONUS_XP })}
           </AppText>
         </View>
         <AppText variant="caption" color={colors.textSoft} center>
-          Thanks for the support — ads keep Braintino free.
+          {t('bonus.thanks')}
         </AppText>
       </AppCard>
     );
@@ -62,19 +64,18 @@ export function RewardedBonusCard() {
   return (
     <AppCard style={{ gap: spacing.sm }}>
       <AppText variant="bodyLarge" weight="bold">
-        Bonus XP
+        {t('bonus.title')}
       </AppText>
       <AppText variant="caption" color={colors.textSoft}>
-        Watch a short ad to add +{REWARDED_BONUS_XP} XP to today’s session. Optional — ads keep
-        Braintino free.
+        {t('bonus.body', { xp: REWARDED_BONUS_XP })}
       </AppText>
       {phase === 'unavailable' && (
         <AppText variant="caption" color={colors.textSoft}>
-          No ad is ready right now — please try again in a moment.
+          {t('bonus.unavailable')}
         </AppText>
       )}
       <AppButton
-        title={phase === 'showing' ? 'Loading…' : `Watch ad for +${REWARDED_BONUS_XP} XP`}
+        title={phase === 'showing' ? t('bonus.loading') : t('bonus.watch', { xp: REWARDED_BONUS_XP })}
         icon="play-circle-outline"
         variant="secondary"
         disabled={!ready || phase === 'showing'}

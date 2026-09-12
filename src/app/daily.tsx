@@ -1,5 +1,6 @@
 import { useRouter } from 'expo-router';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,11 +14,13 @@ import { LevelBadge } from '@/components/LevelBadge';
 import { gradients } from '@/constants/colors';
 import { spacing, tapTarget } from '@/constants/spacing';
 import { MINI_GAMES } from '@/data/miniGames';
+import { localizedGameTitle, localizedSkillLabel } from '@/i18n/copy';
 import { getStartingLevel } from '@/game/engines/difficulty';
 import { useTheme } from '@/hooks/useTheme';
 import { useGameStore } from '@/store/useGameStore';
 
 export default function DailyTrainingScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors, settings } = useTheme();
@@ -40,7 +43,7 @@ export default function DailyTrainingScreen() {
         <Reveal index={0} style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Back"
+            accessibilityLabel={t('common.back')}
             onPress={() => router.back()}
             style={{
               width: tapTarget.min,
@@ -57,9 +60,9 @@ export default function DailyTrainingScreen() {
             <AppText variant="caption" weight="semiBold" color={colors.textMuted} style={{ letterSpacing: 0.6 }}>
               DAILY PRACTICE
             </AppText>
-            <AppText variant="title">Today’s Session</AppText>
+            <AppText variant="title">{t('daily.title')}</AppText>
             <AppText variant="body" color={colors.textSoft}>
-              3 exercises · about 5 minutes
+              {t('daily.tomorrowMeta')}
             </AppText>
           </View>
         </Reveal>
@@ -109,10 +112,10 @@ export default function DailyTrainingScreen() {
                     </View>
                     <View style={{ flex: 1, gap: 4 }}>
                       <AppText variant="bodyLarge" weight="bold">
-                        {game.title}
+                        {localizedGameTitle(id, t)}
                       </AppText>
                       <View style={{ flexDirection: 'row', gap: spacing.sm, alignItems: 'center', flexWrap: 'wrap' }}>
-                        <SkillChip skill={game.skill} labelOverride={game.skillLabel} />
+                        <SkillChip skill={game.skill} labelOverride={localizedSkillLabel(game.skill, t)} />
                         <LevelBadge level={level} compact />
                         <AppText variant="caption" color={colors.textSoft}>
                           ~{Math.round(game.baseDurationSec / 60 * 10) / 10}m
@@ -128,7 +131,7 @@ export default function DailyTrainingScreen() {
 
         <Reveal index={4}>
           <AppButton
-            title="Begin Session"
+            title={t('daily.begin')}
             icon="play"
             onPress={() => {
               const s = session?.mode === 'daily' && session.results.length === 0 ? session : startDailySession();
@@ -138,7 +141,7 @@ export default function DailyTrainingScreen() {
         </Reveal>
         <Reveal index={5}>
           <AppText variant="caption" color={colors.textSoft} center>
-            Accuracy matters more than speed.
+            {t('daily.accuracyFirst')}
           </AppText>
         </Reveal>
       </ScrollView>

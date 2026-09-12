@@ -1,5 +1,6 @@
 import { storeLinksBlock } from '@/constants/storeLinks';
 import { shareMessage } from '@/game/engines/assessment';
+import i18n from '@/i18n';
 import type { AssessmentResult } from '@/types/assessment';
 
 /** Streak days that unlock a share / friend-challenge prompt (issue #7). */
@@ -50,26 +51,21 @@ export function shareableStreakReached(streak: number): ShareStreakMilestone | n
  * medical, diagnostic, IQ, or ADHD claims.
  */
 export function inviteMessage(result: AssessmentResult): string {
-  return withStoreLinks(
-    `I scored ${result.score}/100 on Braintino's Focus Snapshot. Think you can beat it? Entertainment only — not a diagnosis.`
-  );
+  return withStoreLinks(i18n.t('invite.withScore', { score: result.score }));
 }
 
 export function genericInviteMessage(): string {
-  return withStoreLinks(
-    `Challenge: take Braintino's Focus Snapshot and see your score. Five-minute daily practice. Entertainment only — not a diagnosis.`
-  );
+  return withStoreLinks(i18n.t('invite.generic'));
 }
 
 export function streakInviteMessage(
   days: number,
   result?: AssessmentResult | null
 ): string {
-  const scoreBit = result
-    ? ` and scored ${result.score}/100 on Focus Snapshot.`
-    : '.';
   return withStoreLinks(
-    `I just hit a ${days}-day streak on Braintino${scoreBit} Think you can beat it? Entertainment only — not a diagnosis.`
+    result
+      ? i18n.t('invite.streakWithScore', { days, score: result.score })
+      : i18n.t('invite.streakNoScore', { days })
   );
 }
 

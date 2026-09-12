@@ -1,9 +1,10 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { AppText } from '@/components/AppText';
 import { AssessmentSkillBar } from '@/components/AssessmentSkillBar';
 import { palette } from '@/constants/colors';
-import { RESULT_CARD_SHORT_DISCLAIMER } from '@/game/engines/assessment';
+import { localizedAssessmentBand } from '@/i18n/copy';
 import type { AssessmentResult } from '@/types/assessment';
 
 export const SHARE_CARD_WIDTH = 390;
@@ -23,6 +24,8 @@ type OffscreenProps = {
  * Field values come from the ASO contract; layout matches the approved frame.
  */
 export function AssessmentShareCard({ result }: Props) {
+  const { t } = useTranslation();
+  const band = localizedAssessmentBand(result.score, t);
   return (
     <View
       collapsable={false}
@@ -56,7 +59,7 @@ export function AssessmentShareCard({ result }: Props) {
       </View>
 
       <AppText variant="caption" weight="medium" color={palette.textMuted} style={{ fontSize: 13 }}>
-        Focus Snapshot
+        {t('assessment.name')}
       </AppText>
 
       <AppText
@@ -64,16 +67,16 @@ export function AssessmentShareCard({ result }: Props) {
         weight="bold"
         color={palette.deepNavy}
         style={{ fontSize: 72, lineHeight: 80 }}
-        accessibilityLabel={`Score ${result.score} out of 100`}
+        accessibilityLabel={t('common.scoreOutOf100', { score: result.score })}
       >
         {result.score}
       </AppText>
 
       <AppText variant="title" weight="semiBold" color={palette.deepNavy} style={{ fontSize: 22 }} center>
-        {result.band.label}
+        {band.label}
       </AppText>
       <AppText variant="caption" color={palette.textSecondary} style={{ fontSize: 14 }} center>
-        {result.band.blurb}
+        {band.blurb}
       </AppText>
 
       <View
@@ -85,9 +88,9 @@ export function AssessmentShareCard({ result }: Props) {
           gap: 12,
         }}
       >
-        <AssessmentSkillBar label="Focus" value={result.focus} branded />
-        <AssessmentSkillBar label="Speed" value={result.speed} branded />
-        <AssessmentSkillBar label="Consistency" value={result.consistency} branded />
+        <AssessmentSkillBar label={t('assessment.focus')} value={result.focus} branded />
+        <AssessmentSkillBar label={t('assessment.speed')} value={result.speed} branded />
+        <AssessmentSkillBar label={t('assessment.consistency')} value={result.consistency} branded />
       </View>
 
       <View
@@ -99,12 +102,12 @@ export function AssessmentShareCard({ result }: Props) {
         }}
       >
         <AppText variant="caption" weight="semiBold" color={palette.deepNavy} style={{ fontSize: 12 }}>
-          5-minute daily practice
+          {t('assessment.dailyChip')}
         </AppText>
       </View>
 
       <AppText variant="caption" color={palette.textMuted} style={{ fontSize: 10 }} center>
-        {RESULT_CARD_SHORT_DISCLAIMER}
+        {t('assessment.cardDisclaimer')}
       </AppText>
     </View>
   );

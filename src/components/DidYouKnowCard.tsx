@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as WebBrowser from 'expo-web-browser';
@@ -28,6 +29,7 @@ const EASE = Easing.bezier(0.22, 1, 0.36, 1);
  * app/results.tsx) so the fact is read rather than scrolled past.
  */
 export function DidYouKnowCard({ fact }: { fact: ScienceFact }) {
+  const { t } = useTranslation();
   const { colors, fs, reducedMotion } = useTheme();
   const [cardWidth, setCardWidth] = useState(0);
 
@@ -132,7 +134,7 @@ export function DidYouKnowCard({ fact }: { fact: ScienceFact }) {
             color={colors.textOnDark}
             style={{ letterSpacing: 1.6 }}
           >
-            DID YOU KNOW
+            {t('results.didYouKnow')}
           </AppText>
         </View>
 
@@ -147,7 +149,7 @@ export function DidYouKnowCard({ fact }: { fact: ScienceFact }) {
           </AppText>
           <Pressable
             accessibilityRole="link"
-            accessibilityLabel={`Read the source: ${fact.source}`}
+            accessibilityLabel={t('results.readSource', { source: fact.source })}
             onPress={() => WebBrowser.openBrowserAsync(fact.link).catch(() => {})}
             hitSlop={8}
             style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}

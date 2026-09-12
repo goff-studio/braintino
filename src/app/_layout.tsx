@@ -10,7 +10,10 @@ import { Stack, usePathname } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect } from 'react';
+import { AppState } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { useTranslation } from 'react-i18next';
+import { applyAppLocale } from '@/i18n';
 import { initAnalytics, trackScreen } from '@/services/analytics/analytics';
 import { AppsFlyerService } from '@/services/attribution/AppsFlyerService';
 import { initAudio } from '@/services/audio/audio';
@@ -22,6 +25,7 @@ import { useGameStore } from '@/store/useGameStore';
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function RootLayout() {
+  const { i18n } = useTranslation();
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
     Inter_500Medium,
@@ -67,10 +71,18 @@ export default function RootLayout() {
     if (fontsLoaded && hydrated) SplashScreen.hideAsync().catch(() => {});
   }, [fontsLoaded, hydrated]);
 
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state !== 'active') return;
+      applyAppLocale(useGameStore.getState().settings.localePreference);
+    });
+    return () => sub.remove();
+  }, []);
+
   if (!fontsLoaded || !hydrated) return null;
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView key={i18n.language} style={{ flex: 1 }}>
       <StatusBar style="dark" />
       <Stack screenOptions={{ headerShown: false, animation: 'fade' }}>
         <Stack.Screen name="(tabs)" />

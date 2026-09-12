@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,7 +15,8 @@ import { StatPill } from '@/components/StatPill';
 import { WeeklyChart } from '@/components/WeeklyChart';
 import { gradients } from '@/constants/colors';
 import { spacing } from '@/constants/spacing';
-import { rankForLevel, xpForLevel } from '@/data/levels';
+import { xpForLevel } from '@/data/levels';
+import { localizedRank, localizedSkillLabel } from '@/i18n/copy';
 import { shareableStreakReached } from '@/game/engines/invite';
 import { useTheme } from '@/hooks/useTheme';
 import { useGameStore } from '@/store/useGameStore';
@@ -22,6 +24,7 @@ import type { SkillType } from '@/types/game';
 import { currentWeekKeys } from '@/utils/date';
 
 export default function ProgressScreen() {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const progress = useGameStore((s) => s.progress);
@@ -76,7 +79,7 @@ export default function ProgressScreen() {
         }}
       >
         <Reveal index={0}>
-          <AppText variant="heading">Progress</AppText>
+          <AppText variant="heading">{t('progress.title')}</AppText>
         </Reveal>
 
         {/* Practice level */}
@@ -89,20 +92,24 @@ export default function ProgressScreen() {
             color={colors.primary}
           />
           <View style={{ flex: 1, gap: spacing.xs }}>
-            <AppText variant="title">{rankForLevel(progress.globalLevel)}</AppText>
+            <AppText variant="title">{localizedRank(progress.globalLevel, t)}</AppText>
             <AppText variant="caption" color={colors.textSoft}>
-              {progress.xp}/{xpNeeded} XP to level {progress.globalLevel + 1}
+              {t('progress.xpToLevel', {
+                xp: progress.xp,
+                needed: xpNeeded,
+                level: progress.globalLevel + 1,
+              })}
             </AppText>
             <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: 4, flexWrap: 'wrap' }}>
               <StatPill
                 icon="flame-outline"
-                value={`${progress.streak}-day streak`}
-                accessibilityLabel={`${progress.streak}-day streak`}
+                value={t('common.dayStreak', { count: progress.streak })}
+                accessibilityLabel={t('common.dayStreak', { count: progress.streak })}
               />
               <StatPill
                 icon="checkmark-done-outline"
                 value={`${progress.totalSessions}`}
-                accessibilityLabel={`${progress.totalSessions} sessions completed`}
+                accessibilityLabel={t('progress.sessionsA11y', { count: progress.totalSessions })}
               />
             </View>
           </View>
@@ -114,7 +121,7 @@ export default function ProgressScreen() {
         <AppCard style={{ gap: spacing.md }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <AppText variant="bodyLarge" weight="bold">
-              This Week
+              {t('progress.thisWeek')}
             </AppText>
             {weeklyPracticeScore !== null && (
               <View style={{ alignItems: 'flex-end' }}>
@@ -122,14 +129,14 @@ export default function ProgressScreen() {
                   {weeklyPracticeScore}
                 </AppText>
                 <AppText variant="caption" color={colors.textMuted}>
-                  Practice Score
+                  {t('progress.practiceScore')}
                 </AppText>
               </View>
             )}
           </View>
           <WeeklyChart minutesByDate={progress.minutesByDate} />
           <AppText variant="caption" color={colors.textSoft}>
-            {weeklyMinutes} min this week · {progress.totalSessions} sessions total
+            {t('progress.weekSummary', { minutes: weeklyMinutes, sessions: progress.totalSessions })}
           </AppText>
         </AppCard>
         </Reveal>
@@ -138,7 +145,7 @@ export default function ProgressScreen() {
         <Reveal index={3}>
         <AppCard style={{ gap: spacing.md }}>
           <AppText variant="bodyLarge" weight="bold">
-            Skill Balance
+            {t('progress.skillBalance')}
           </AppText>
           {skillBalance.map(({ skill, value, played }) => {
             const meta = SKILL_META[skill];
@@ -148,11 +155,11 @@ export default function ProgressScreen() {
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
                     <Ionicons name={meta.icon} size={16} color={meta.color} />
                     <AppText variant="caption" weight="semiBold">
-                      {meta.label}
+                      {localizedSkillLabel(skill, t)}
                     </AppText>
                   </View>
                   <AppText variant="caption" color={colors.textSoft}>
-                    {played ? `${Math.round(value * 100)}%` : 'No data yet'}
+                    {played ? `${Math.round(value * 100)}%` : t('progress.noData')}
                   </AppText>
                 </View>
                 <View style={{ height: 8, borderRadius: 4, backgroundColor: colors.trackFaint }}>
@@ -169,7 +176,7 @@ export default function ProgressScreen() {
             );
           })}
           <AppText variant="caption" color={colors.textMuted}>
-            Based on accuracy in your recent sessions.
+            {t('progress.skillHint')}
           </AppText>
         </AppCard>
         </Reveal>
@@ -188,7 +195,7 @@ export default function ProgressScreen() {
         <Reveal index={5}>
         <AppCard style={{ gap: spacing.md }}>
           <AppText variant="bodyLarge" weight="bold">
-            Recent Milestones
+            {t('progress.milestones')}
           </AppText>
           <MilestoneList earnedBadges={progress.earnedBadges} />
         </AppCard>

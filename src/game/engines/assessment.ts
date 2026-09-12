@@ -1,5 +1,7 @@
 import { gameConfig } from '@/constants/gameConfig';
 import { calculateAccuracy, calculateConsistency } from '@/game/engines/scoring';
+import i18n from '@/i18n';
+import { localizedAssessmentBand } from '@/i18n/copy';
 import type { AssessmentBand, AssessmentResult, AssessmentSource } from '@/types/assessment';
 import { ASSESSMENT_SOURCES } from '@/types/assessment';
 import type { RoundsSummary } from '@/types/game';
@@ -82,7 +84,7 @@ export function scoreAssessment(
 }
 
 export function shareMessage(result: AssessmentResult): string {
-  return `I scored ${result.score}/100 on Braintino's Focus Snapshot. Entertainment only — not a diagnosis.`;
+  return i18n.t('assessment.shareMessage', { score: result.score });
 }
 
 /**
@@ -96,14 +98,14 @@ export function RESULT_CARD_FIELDS(result: AssessmentResult): { key: string; val
   return [
     { key: 'brand', value: 'Braintino' },
     { key: 'assessment_id', value: result.id },
-    { key: 'assessment_name', value: 'Focus Snapshot' },
+    { key: 'assessment_name', value: i18n.t('assessment.name') },
     { key: 'score', value: String(result.score) },
     { key: 'score_max', value: '100' },
-    { key: 'band_label', value: result.band.label },
-    { key: 'band_blurb', value: result.band.blurb },
+    { key: 'band_label', value: localizedAssessmentBand(result.score).label },
+    { key: 'band_blurb', value: localizedAssessmentBand(result.score).blurb },
     { key: 'focus', value: String(result.focus) },
     { key: 'speed', value: String(result.speed) },
     { key: 'consistency', value: String(result.consistency) },
-    { key: 'disclaimer_short', value: RESULT_CARD_SHORT_DISCLAIMER },
+    { key: 'disclaimer_short', value: i18n.t('assessment.cardDisclaimer') },
   ];
 }

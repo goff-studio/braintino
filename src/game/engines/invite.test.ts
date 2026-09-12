@@ -12,6 +12,7 @@ import {
   streakInviteMessage,
 } from '@/game/engines/invite';
 import { shareMessage } from '@/game/engines/assessment';
+import i18n from '@/i18n';
 import type { AssessmentResult } from '@/types/assessment';
 
 function result(score = 78): AssessmentResult {
@@ -72,7 +73,8 @@ describe('share streak milestones', () => {
 });
 
 describe('invite copy', () => {
-  it('keeps the result share_message contract', () => {
+  it('keeps the result share_message contract', async () => {
+    await i18n.changeLanguage('en');
     const snapshot = result(78);
     assert.equal(
       shareMessage(snapshot),
@@ -81,7 +83,8 @@ describe('invite copy', () => {
     assert.equal(shareBodyForKind({ kind: 'result', result: snapshot }), shareMessage(snapshot));
   });
 
-  it('invite and streak copy include score, disclaimer, and both store URLs', () => {
+  it('invite and streak copy include score, disclaimer, and both store URLs', async () => {
+    await i18n.changeLanguage('en');
     const snapshot = result(78);
     const invite = inviteMessage(snapshot);
     const streak = streakInviteMessage(7, snapshot);
@@ -98,7 +101,8 @@ describe('invite copy', () => {
     assert.match(streak, /78\/100/);
   });
 
-  it('streak copy without a snapshot still invites without a fake score', () => {
+  it('streak copy without a snapshot still invites without a fake score', async () => {
+    await i18n.changeLanguage('en');
     const text = streakInviteMessage(30);
     assert.match(text, /30-day streak/);
     assert.doesNotMatch(text, /scored/);

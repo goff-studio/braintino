@@ -1,5 +1,6 @@
 import { useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -24,9 +25,15 @@ import { MINI_GAMES } from '@/data/miniGames';
 import { getTodayDailyPlan } from '@/game/engines/dailyTraining';
 import { streakSaveMessage } from '@/game/engines/habitLoop';
 import { newestShareStreak } from '@/game/engines/invite';
-import { difficultyChangeMessage } from '@/game/engines/difficulty';
-import { consistencyLabel, createFriendlyFeedback } from '@/game/engines/scoring';
 import { isSessionComplete, sessionTotals } from '@/game/engines/session';
+import {
+  localizedBadgeDescription,
+  localizedBadgeTitle,
+  localizedConsistencyLabel,
+  localizedDifficultyChange,
+  localizedFriendlyFeedback,
+  localizedGameTitle,
+} from '@/i18n/copy';
 import { useTheme } from '@/hooks/useTheme';
 import { playSound } from '@/services/audio/audio';
 import { completionHaptic } from '@/services/haptics/haptics';
@@ -43,6 +50,7 @@ import { tomorrowKey } from '@/utils/date';
 const FACT_HOLD_MS = 3000;
 
 export default function ResultsScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors, reducedMotion } = useTheme();
@@ -93,8 +101,8 @@ export default function ResultsScreen() {
     return (
       <ScreenBackground gradient={gradients.results}>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.lg }}>
-          <AppText variant="title">Nothing to show yet</AppText>
-          <AppButton title="Back to Today" onPress={() => router.replace('/(tabs)')} />
+          <AppText variant="title">{t('results.nothing')}</AppText>
+          <AppButton title={t('results.backToday')} onPress={() => router.replace('/(tabs)')} />
         </View>
       </ScreenBackground>
     );
@@ -104,7 +112,7 @@ export default function ResultsScreen() {
   const skills = Object.keys(result.skillScores) as SkillType[];
   const difficultyNote =
     result.difficultyDelta !== undefined && result.difficultyDelta !== 0
-      ? difficultyChangeMessage(result.level, result.level + result.difficultyDelta)
+      ? localizedDifficultyChange(result.level, result.level + result.difficultyDelta, t)
       : null;
 
   const goHome = async () => {
@@ -136,10 +144,14 @@ export default function ResultsScreen() {
       >
         <Reveal index={0} style={{ alignItems: 'center', gap: spacing.sm }}>
           <AppText variant="heading" center>
-            {dailyComplete ? 'Session Complete' : weeklyComplete ? 'Challenge Complete' : 'Exercise Complete'}
+            {dailyComplete
+              ? t('results.sessionComplete')
+              : weeklyComplete
+                ? t('weekly.resultsTitle')
+                : t('results.exerciseComplete')}
           </AppText>
           <AppText variant="bodyLarge" color={colors.textSoft} center>
-            {createFriendlyFeedback(result)}
+            {localizedFriendlyFeedback(result, t)}
           </AppText>
         </Reveal>
 
@@ -152,7 +164,7 @@ export default function ResultsScreen() {
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
               <Ionicons name={config.icon as keyof typeof Ionicons.glyphMap} size={20} color={config.color} />
               <AppText variant="bodyLarge" weight="bold">
-                {config.title}
+                {localizedGameTitle(result.miniGameId, t)}
               </AppText>
             </View>
             <SessionRating rating={result.stars ?? 1} animated />
@@ -166,13 +178,13 @@ export default function ResultsScreen() {
                   color={colors.primary}
                 />
                 <AppText variant="caption" color={colors.textSoft}>
-                  Accuracy
+                  {t('results.accuracy')}
                 </AppText>
               </View>
               <View style={{ alignItems: 'center' }}>
                 <AnimatedNumber value={result.practiceScore} variant="heading" color={colors.text} />
                 <AppText variant="caption" color={colors.textSoft}>
-                  Practice Score
+                  {t('results.practiceScore')}
                 </AppText>
               </View>
               <View style={{ alignItems: 'center' }}>
@@ -186,11 +198,13 @@ export default function ResultsScreen() {
             <View style={{ flexDirection: 'row', gap: spacing.sm, flexWrap: 'wrap', justifyContent: 'center' }}>
               <StatPill
                 icon="pulse-outline"
-                value={consistencyLabel(result.consistency)}
-                accessibilityLabel={`Response consistency: ${consistencyLabel(result.consistency)}`}
+                value={localizedConsistencyLabel(result.consistency, t)}
+                accessibilityLabel={t('results.consistencyA11y', {
+                  label: localizedConsistencyLabel(result.consistency, t),
+                })}
               />
               {result.isPersonalBest && (
-                <StatPill icon="ribbon-outline" value="New personal best" variant="lime" />
+                <StatPill icon="ribbon-outline" value={t('results.personalBest')} variant="lime" />
               )}
             </View>
 
@@ -219,7 +233,7 @@ export default function ResultsScreen() {
             <Reveal index={2}>
             <AppCard style={{ gap: spacing.sm }}>
               <AppText variant="bodyLarge" weight="bold">
-                Milestone reached
+                {t('results.milestone')}
               </AppText>
               {lastEarnedBadges.map((badge) => (
                 <View key={badge.id} style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
@@ -229,10 +243,10 @@ export default function ResultsScreen() {
                     color={colors.success}
                   />
                   <AppText variant="body" weight="semiBold">
-                    {badge.title}
+                    {localizedBadgeTitle(badge.id, badge.title, t)}
                   </AppText>
                   <AppText variant="caption" color={colors.textMuted}>
-                    {badge.description}
+                    {localizedBadgeDescription(badge.id, badge.description, t)}
                   </AppText>
                 </View>
               ))}
@@ -255,16 +269,16 @@ export default function ResultsScreen() {
             <AppCard style={{ gap: spacing.md }}>
               <View style={{ gap: spacing.sm, alignItems: 'center' }}>
                 <AppText variant="bodyLarge" weight="bold">
-                  Today’s Session
+                  {t('daily.title')}
                 </AppText>
                 <View style={{ flexDirection: 'row', gap: spacing.sm, flexWrap: 'wrap', justifyContent: 'center' }}>
-                  <StatPill icon="checkmark-done-outline" value={`${session!.results.length} exercises`} />
-                  <StatPill icon="flash-outline" value={`+${totals.xp} XP`} />
+                  <StatPill icon="checkmark-done-outline" value={t('common.exercisesCount', { count: session!.results.length })} />
+                  <StatPill icon="flash-outline" value={t('common.xpPlus', { count: totals.xp })} />
                   <StatPill
                     icon="flame-outline"
-                    value={`${progress.streak}-day streak`}
+                    value={t('common.dayStreak', { count: progress.streak })}
                     variant="lime"
-                    accessibilityLabel={`${progress.streak}-day streak`}
+                    accessibilityLabel={t('common.dayStreak', { count: progress.streak })}
                   />
                 </View>
                 <AppText variant="body" color={colors.textSoft} center>
@@ -281,21 +295,21 @@ export default function ResultsScreen() {
             <AppCard style={{ gap: spacing.md }}>
               <View style={{ gap: spacing.sm, alignItems: 'center' }}>
                 <AppText variant="caption" weight="semiBold" color={colors.textMuted} style={{ letterSpacing: 0.6 }}>
-                  WEEKLY CHALLENGE
+                  {t('weekly.kicker')}
                 </AppText>
                 <AppText variant="bodyLarge" weight="bold">
-                  Challenge complete
+                  {t('weekly.resultsTitle')}
                 </AppText>
                 <View style={{ flexDirection: 'row', gap: spacing.sm, flexWrap: 'wrap', justifyContent: 'center' }}>
-                  <StatPill icon="checkmark-done-outline" value={`${session!.results.length} exercises`} />
-                  <StatPill icon="flash-outline" value={`+${totals.xp} XP`} />
+                  <StatPill icon="checkmark-done-outline" value={t('common.exercisesCount', { count: session!.results.length })} />
+                  <StatPill icon="flash-outline" value={t('common.xpPlus', { count: totals.xp })} />
                   <StatPill
                     icon="trophy-outline"
-                    value={`${Math.round(totals.avgAccuracy * 100)}% accuracy`}
+                    value={t('weekly.accuracyPill', { percent: Math.round(totals.avgAccuracy * 100) })}
                   />
                 </View>
                 <AppText variant="body" color={colors.textSoft} center>
-                  Same practice score as always — a new mix lands next week.
+                  {t('weekly.resultsBody')}
                 </AppText>
               </View>
             </AppCard>
@@ -318,20 +332,20 @@ export default function ResultsScreen() {
             {nextGameId ? (
               <>
                 <AppButton
-                  title={`Next: ${MINI_GAMES[nextGameId].title}`}
+                  title={t('results.nextGame', { title: localizedGameTitle(nextGameId, t) })}
                   icon="arrow-forward"
                   onPress={() => {
                     advanceToNextGame();
                     router.replace(`/play/${nextGameId}`);
                   }}
                 />
-                <AppButton title="Finish for now" variant="ghost" onPress={goHome} />
+                <AppButton title={t('results.finishForNow')} variant="ghost" onPress={goHome} />
               </>
             ) : (
               <>
                 {isPractice && (
                   <AppButton
-                    title="Repeat Exercise"
+                    title={t('results.repeat')}
                     icon="refresh"
                     variant="secondary"
                     onPress={() => {
@@ -342,7 +356,7 @@ export default function ResultsScreen() {
                 )}
                 {weeklyComplete && (
                   <AppButton
-                    title="Free play an exercise"
+                    title={t('today.freePlayExercise')}
                     icon="grid-outline"
                     variant="secondary"
                     onPress={() => {
@@ -351,7 +365,7 @@ export default function ResultsScreen() {
                     }}
                   />
                 )}
-                <AppButton title="Done" icon="checkmark" onPress={goHome} />
+                <AppButton title={t('common.done')} icon="checkmark" onPress={goHome} />
               </>
             )}
           </Reveal>

@@ -1,5 +1,6 @@
 import { useRouter } from 'expo-router';
 import React, { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppButton } from '@/components/AppButton';
@@ -10,7 +11,7 @@ import { AssessmentSkillBar } from '@/components/AssessmentSkillBar';
 import { ScreenBackground } from '@/components/ScreenBackground';
 import { palette } from '@/constants/colors';
 import { radius, spacing } from '@/constants/spacing';
-import { RESULT_SCREEN_DISCLAIMER } from '@/game/engines/assessment';
+import { localizedAssessmentBand } from '@/i18n/copy';
 import { useTheme } from '@/hooks/useTheme';
 import { tapHaptic } from '@/services/haptics/haptics';
 import { presentShare } from '@/services/share/shareLoop';
@@ -21,6 +22,7 @@ import { useGameStore } from '@/store/useGameStore';
  * rendered off-screen so the in-app layout stays the result frame.
  */
 export default function AssessmentResultScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors, fs } = useTheme();
@@ -56,9 +58,9 @@ export default function AssessmentResultScreen() {
       <ScreenBackground gradient={[palette.appBg, palette.appBg]}>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.lg, padding: spacing.lg }}>
           <AppText variant="title" center>
-            No snapshot yet
+            {t('assessment.noSnapshot')}
           </AppText>
-          <AppButton title="Take Focus Snapshot" onPress={() => router.replace('/assessment')} />
+          <AppButton title={t('assessment.take')} onPress={() => router.replace('/assessment')} />
         </View>
       </ScreenBackground>
     );
@@ -80,7 +82,7 @@ export default function AssessmentResultScreen() {
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Close"
+            accessibilityLabel={t('common.close')}
             hitSlop={12}
             onPress={() => {
               tapHaptic();
@@ -88,15 +90,15 @@ export default function AssessmentResultScreen() {
             }}
           >
             <AppText variant="caption" weight="medium" color={colors.primary} style={{ fontSize: 15 }}>
-              Close
+              {t('common.close')}
             </AppText>
           </Pressable>
           <AppText variant="caption" weight="semiBold" color={colors.text} style={{ fontSize: 15 }}>
-            Focus Snapshot
+            {t('assessment.name')}
           </AppText>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Share"
+            accessibilityLabel={t('assessment.share')}
             hitSlop={12}
             disabled={sharing}
             onPress={() => {
@@ -105,7 +107,7 @@ export default function AssessmentResultScreen() {
             }}
           >
             <AppText variant="caption" weight="semiBold" color={colors.primary} style={{ fontSize: 15 }}>
-              Share
+              {t('assessment.share')}
             </AppText>
           </Pressable>
         </View>
@@ -134,25 +136,25 @@ export default function AssessmentResultScreen() {
             </AppText>
           </View>
           <AppText variant="caption" weight="medium" color={colors.textMuted} style={{ fontSize: 13 }}>
-            Focus Snapshot
+            {t('assessment.name')}
           </AppText>
           <AppText
             variant="resultNumber"
             weight="bold"
             style={{ fontSize: fs(64), lineHeight: fs(72) }}
-            accessibilityLabel={`Score ${result.score} out of 100`}
+            accessibilityLabel={t('common.scoreOutOf100', { score: result.score })}
           >
             {result.score}
           </AppText>
           <AppText variant="caption" weight="medium" color={colors.textMuted} style={{ fontSize: 14 }}>
-            out of 100
+            {t('common.outOf100')}
           </AppText>
           <View style={{ alignItems: 'center', gap: 4, paddingTop: 8 }}>
             <AppText variant="gameLabel" weight="semiBold" center>
-              {result.band.label}
+              {localizedAssessmentBand(result.score, t).label}
             </AppText>
             <AppText variant="caption" color={colors.textSoft} style={{ fontSize: 14 }} center>
-              {result.band.blurb}
+              {localizedAssessmentBand(result.score, t).blurb}
             </AppText>
           </View>
         </AppCard>
@@ -167,16 +169,16 @@ export default function AssessmentResultScreen() {
           }}
         >
           <AppText variant="caption" weight="semiBold" style={{ fontSize: 15 }}>
-            Breakdown
+            {t('assessment.breakdown')}
           </AppText>
-          <AssessmentSkillBar label="Focus" value={result.focus} />
-          <AssessmentSkillBar label="Speed" value={result.speed} />
-          <AssessmentSkillBar label="Consistency" value={result.consistency} />
+          <AssessmentSkillBar label={t('assessment.focus')} value={result.focus} />
+          <AssessmentSkillBar label={t('assessment.speed')} value={result.speed} />
+          <AssessmentSkillBar label={t('assessment.consistency')} value={result.consistency} />
         </AppCard>
 
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Share your snapshot"
+          accessibilityLabel={t('assessment.shareCta')}
           disabled={sharing}
           onPress={() => {
             tapHaptic();
@@ -192,13 +194,13 @@ export default function AssessmentResultScreen() {
           }}
         >
           <AppText variant="button" weight="semiBold" color={colors.textOnDark} style={{ fontSize: 16 }}>
-            Share your snapshot
+            {t('assessment.shareCta')}
           </AppText>
         </Pressable>
 
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Challenge a friend"
+          accessibilityLabel={t('assessment.inviteCta')}
           disabled={sharing}
           onPress={() => {
             tapHaptic();
@@ -216,12 +218,12 @@ export default function AssessmentResultScreen() {
           }}
         >
           <AppText variant="button" weight="semiBold" color={colors.primary} style={{ fontSize: 16 }}>
-            Challenge a friend
+            {t('assessment.inviteCta')}
           </AppText>
         </Pressable>
 
         <AppText variant="caption" color={colors.textMuted} style={{ fontSize: 11 }} center>
-          {RESULT_SCREEN_DISCLAIMER}
+          {t('assessment.resultDisclaimer')}
         </AppText>
         </View>
       </ScrollView>
