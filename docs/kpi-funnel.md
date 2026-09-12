@@ -41,6 +41,8 @@ Related (not the spine, but useful in the same readout):
 | --- | --- |
 | `reminder_enabled` | `docs/habit-loop-analytics.md` |
 | `daily_completed` | `docs/habit-loop-analytics.md` |
+| `free_play_started` | `docs/catalog-analytics.md` |
+| `weekly_challenge_started` / `weekly_challenge_completed` | `docs/catalog-analytics.md` |
 | `calibration_completed` | `src/store/useGameStore.ts` (`placement_level`, `blocks`, `mode`) |
 | `session_completed` | AppsFlyer only — every finished session after the first |
 

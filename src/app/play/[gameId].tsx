@@ -17,6 +17,7 @@ import { spacing } from '@/constants/spacing';
 import { MINI_GAMES } from '@/data/miniGames';
 import { getDifficultyForMiniGame, getStartingLevel } from '@/game/engines/difficulty';
 import { buildResult } from '@/game/engines/scoring';
+import { applyWeeklyTwist, weeklyTwistLabel } from '@/game/engines/weeklyChallenge';
 import { GAME_COMPONENTS } from '@/game/miniGames';
 import { useTheme } from '@/hooks/useTheme';
 import { useGameStore } from '@/store/useGameStore';
@@ -30,6 +31,7 @@ export default function GamePlayScreen() {
   const { colors, settings } = useTheme();
 
   const progress = useGameStore((s) => s.progress);
+  const session = useGameStore((s) => s.session);
   const completeGame = useGameStore((s) => s.completeGame);
   const abandonSession = useGameStore((s) => s.abandonSession);
   const startPracticeSession = useGameStore((s) => s.startPracticeSession);
@@ -49,11 +51,12 @@ export default function GamePlayScreen() {
   const level = mgProgress?.level ?? getStartingLevel(progress, settings.difficultyMode);
   const totalRounds = gameConfig.roundsPerSession[id];
 
-  const difficulty = useMemo(
-    () => getDifficultyForMiniGame(id, level, settings, mgProgress?.lastResults ?? []),
-    [id, level, settings, mgProgress?.lastResults]
-  );
-  const seed = `${todayKey()}-${id}-L${level}-s${mgProgress?.sessionsPlayed ?? 0}-k${gameKey}`;
+  const weeklyTwist = session?.mode === 'weekly' ? session.twist : undefined;
+  const difficulty = useMemo(() => {
+    const base = getDifficultyForMiniGame(id, level, settings, mgProgress?.lastResults ?? []);
+    return weeklyTwist ? applyWeeklyTwist(id, base, weeklyTwist) : base;
+  }, [id, level, settings, mgProgress?.lastResults, weeklyTwist]);
+  const seed = `${todayKey()}-${id}-L${level}-s${mgProgress?.sessionsPlayed ?? 0}-k${gameKey}${weeklyTwist ? `-w${weeklyTwist}` : ''}`;
 
   if (!config || !Game) {
     return (
@@ -117,6 +120,16 @@ export default function GamePlayScreen() {
               <SkillChip skill={config.skill} labelOverride={config.skillLabel} />
               <LevelBadge level={level} />
             </View>
+            {weeklyTwist && (
+              <AppText variant="caption" weight="semiBold" color={colors.primary} center>
+                Weekly challenge · {weeklyTwistLabel(weeklyTwist)}
+              </AppText>
+            )}
+            {session?.mode === 'practice' && (
+              <AppText variant="caption" weight="semiBold" color={colors.textMuted} center>
+                Free play · your current level
+              </AppText>
+            )}
             <AppText variant="body" color={colors.textSoft} center>
               {config.howToPlay}
             </AppText>
@@ -180,8 +193,8 @@ export default function GamePlayScreen() {
   );
 
   function startPracticeSessionIfNeeded() {
-    // Restart mid-daily keeps the same session; restart in practice refreshes it.
-    const session = useGameStore.getState().session;
-    if (!session) startPracticeSession(id);
+    // Restart mid-daily / weekly keeps the same session; practice refreshes it.
+    const current = useGameStore.getState().session;
+    if (!current) startPracticeSession(id, 'practice');
   }
 }

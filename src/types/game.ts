@@ -87,7 +87,10 @@ export type RoundsSummary = {
   completed: boolean;
 };
 
-export type SessionMode = 'daily' | 'practice';
+export type SessionMode = 'daily' | 'practice' | 'weekly';
+
+/** Weekly challenge mode twist (issue #6) — existing engine flags, not new games. */
+export type WeeklyTwistId = 'switch' | 'reverse' | 'dual' | 'everyday';
 
 export type SessionState = {
   mode: SessionMode;
@@ -95,4 +98,8 @@ export type SessionState = {
   index: number;
   results: MiniGameResult[];
   dateKey: string;
+  /** Monday date key when mode is weekly. */
+  weekKey?: string;
+  /** Mode twist applied for the weekly set. */
+  twist?: WeeklyTwistId;
 };

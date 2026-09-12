@@ -26,4 +26,9 @@ export type PlayerProgress = {
   practiceByDate: Record<string, { total: number; count: number }>;
   /** Date keys on which a daily session was completed (last 60 days). */
   dailyHistory: string[];
+  /**
+   * Monday date key of the last completed weekly challenge (issue #6).
+   * Optional so schema v2 saves stay compatible.
+   */
+  lastWeeklyChallengeWeek?: string;
 };

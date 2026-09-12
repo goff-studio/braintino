@@ -5,17 +5,26 @@ import { applyXp } from '@/data/levels';
 import { getTodayDailyPlan } from '@/game/engines/dailyTraining';
 import { calculateNextLevel, getStartingLevel } from '@/game/engines/difficulty';
 import { reminderContentFor, shouldLogD1Return } from '@/game/engines/habitLoop';
+import { getWeeklyChallengePlan } from '@/game/engines/weeklyChallenge';
 import {
   advanceSession,
   createDailySession,
   createPracticeSession,
+  createWeeklySession,
   isSessionComplete,
   recordResult,
+  sessionTotals,
 } from '@/game/engines/session';
 import {
   trackAssessmentCompleted,
   trackAssessmentStarted,
 } from '@/services/analytics/assessmentEvents';
+import {
+  trackFreePlayStarted,
+  trackWeeklyChallengeCompleted,
+  trackWeeklyChallengeStarted,
+  type FreePlaySource,
+} from '@/services/analytics/catalogEvents';
 import {
   trackFirstSession,
   trackOnboardingCompleted,
@@ -118,7 +127,8 @@ type GameStore = {
   completeAssessment: (result: AssessmentResult) => void;
 
   startDailySession: () => SessionState;
-  startPracticeSession: (gameId: MiniGameId) => SessionState;
+  startPracticeSession: (gameId: MiniGameId, source?: FreePlaySource) => SessionState;
+  startWeeklySession: () => SessionState;
   /** Score a finished mini-game, update progress, and advance the session. */
   completeGame: (result: MiniGameResult, minutesPlayed: number) => void;
   advanceToNextGame: () => void;
@@ -342,9 +352,28 @@ export const useGameStore = create<GameStore>((set, get) => ({
     return session;
   },
 
-  startPracticeSession: (gameId) => {
+  startPracticeSession: (gameId, source = 'practice') => {
     const session = createPracticeSession(gameId, todayKey());
     set({ session, lastResult: null });
+    trackFreePlayStarted({ gameId, source });
+    return session;
+  },
+
+  startWeeklySession: () => {
+    const state = get();
+    const today = todayKey();
+    const plan = getWeeklyChallengePlan(state.progress, {
+      onboardingDone: state.settings.onboardingDone,
+      lastDailyCompletedDate: state.progress.lastDailyCompletedDate,
+      globalLevel: state.progress.globalLevel,
+    });
+    const session = createWeeklySession(plan.games, plan.weekKey, plan.twist, today);
+    set({ session, lastResult: null });
+    trackWeeklyChallengeStarted({
+      weekKey: plan.weekKey,
+      title: plan.title,
+      twist: plan.twist,
+    });
     return session;
   },
 
@@ -439,6 +468,26 @@ export const useGameStore = create<GameStore>((set, get) => ({
             reminderContentFor(progress, today)
           ).catch(() => {});
         }
+      }
+      if (
+        session.mode === 'weekly' &&
+        session.weekKey &&
+        progress.lastWeeklyChallengeWeek !== session.weekKey
+      ) {
+        progress.lastWeeklyChallengeWeek = session.weekKey;
+        const totals = sessionTotals(session);
+        const weeklyPlan = getWeeklyChallengePlan(progress, {
+          onboardingDone: state.settings.onboardingDone,
+          lastDailyCompletedDate: progress.lastDailyCompletedDate,
+          globalLevel: progress.globalLevel,
+        });
+        trackWeeklyChallengeCompleted({
+          weekKey: session.weekKey,
+          title: weeklyPlan.title,
+          twist: session.twist ?? weeklyPlan.twist,
+          avgAccuracy: totals.avgAccuracy,
+          totalSessions: progress.totalSessions,
+        });
       }
     }
 

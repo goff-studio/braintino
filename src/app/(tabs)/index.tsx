@@ -13,11 +13,13 @@ import { ScreenBackground } from '@/components/ScreenBackground';
 import { StatCard } from '@/components/StatCard';
 import { StatPill } from '@/components/StatPill';
 import { TomorrowPreview } from '@/components/TomorrowPreview';
+import { WeeklyChallengeCard } from '@/components/WeeklyChallengeCard';
 import { gradients } from '@/constants/colors';
 import { spacing } from '@/constants/spacing';
 import { MINI_GAMES } from '@/data/miniGames';
 import { getTodayDailyPlan } from '@/game/engines/dailyTraining';
 import { streakSaveMessage } from '@/game/engines/habitLoop';
+import { getWeeklyChallengePlan } from '@/game/engines/weeklyChallenge';
 import { useTheme } from '@/hooks/useTheme';
 import { useGameStore } from '@/store/useGameStore';
 import { currentWeekKeys, todayKey, tomorrowKey } from '@/utils/date';
@@ -30,7 +32,8 @@ export default function TodayScreen() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const progress = useGameStore((s) => s.progress);
-  const personalPlan = useGameStore((s) => s.settings.personalPlan);
+  const settings = useGameStore((s) => s.settings);
+  const personalPlan = settings.personalPlan;
   const startDailySession = useGameStore((s) => s.startDailySession);
   const lastAssessment = useGameStore((s) => s.lastAssessment);
 
@@ -43,7 +46,20 @@ export default function TodayScreen() {
     () => getTodayDailyPlan(tomorrowKey(), progress, personalPlan),
     [progress, personalPlan]
   );
+  const weeklyPlan = useMemo(
+    () =>
+      getWeeklyChallengePlan(progress, {
+        onboardingDone: settings.onboardingDone,
+        lastDailyCompletedDate: progress.lastDailyCompletedDate,
+        globalLevel: progress.globalLevel,
+      }),
+    [progress, settings.onboardingDone]
+  );
   const dailyDone = progress.lastDailyCompletedDate === today;
+
+  const openWeekly = () => {
+    router.push('/weekly');
+  };
 
   const now = new Date();
   const dateLabel = `${WEEKDAYS[now.getDay()]}, ${MONTHS[now.getMonth()]} ${now.getDate()}`;
@@ -95,6 +111,14 @@ export default function TodayScreen() {
         <Reveal index={personalPlan ? 2 : 1}>
         <AppCard hero style={{ gap: spacing.lg }}>
           <View style={{ gap: spacing.xs }}>
+            <AppText
+              variant="caption"
+              weight="semiBold"
+              color={colors.textOnDarkSoft}
+              style={{ letterSpacing: 0.6 }}
+            >
+              DAILY PRACTICE
+            </AppText>
             <AppText variant="title" color={colors.textOnDark}>
               Today’s Session
             </AppText>
@@ -202,40 +226,56 @@ export default function TodayScreen() {
         </View>
 
         {dailyDone ? (
-          <Reveal index={6}>
-            <AppCard style={{ gap: spacing.md }}>
-              <View style={{ gap: 2 }}>
-                <AppText variant="bodyLarge" weight="bold">
-                  Keep going
-                </AppText>
-                <AppText variant="caption" color={colors.textSoft}>
-                  Today’s session is done. Practice more or take a Focus Snapshot.
-                </AppText>
-              </View>
-              <AppButton
-                title="Practice an exercise"
-                icon="grid-outline"
-                onPress={() => router.push('/practice')}
-              />
-              <AppButton
-                title={lastAssessment ? 'Retake Focus Snapshot' : 'Take Focus Snapshot'}
-                icon="flash-outline"
-                variant="secondary"
-                onPress={() => router.push({ pathname: '/assessment', params: { source: 'today' } })}
-              />
-            </AppCard>
-          </Reveal>
+          <>
+            <Reveal index={6}>
+              <WeeklyChallengeCard plan={weeklyPlan} onPress={openWeekly} />
+            </Reveal>
+            <Reveal index={7}>
+              <AppCard style={{ gap: spacing.md }}>
+                <View style={{ gap: 2 }}>
+                  <AppText
+                    variant="caption"
+                    weight="semiBold"
+                    color={colors.textMuted}
+                    style={{ letterSpacing: 0.6 }}
+                  >
+                    FREE PLAY
+                  </AppText>
+                  <AppText variant="bodyLarge" weight="bold">
+                    Keep going
+                  </AppText>
+                  <AppText variant="caption" color={colors.textSoft}>
+                    Today’s session is done. Play any unlocked exercise, or take a Focus Snapshot.
+                  </AppText>
+                </View>
+                <AppButton
+                  title="Free play an exercise"
+                  icon="grid-outline"
+                  onPress={() => router.push('/practice')}
+                />
+                <AppButton
+                  title={lastAssessment ? 'Retake Focus Snapshot' : 'Take Focus Snapshot'}
+                  icon="flash-outline"
+                  variant="secondary"
+                  onPress={() => router.push({ pathname: '/assessment', params: { source: 'today' } })}
+                />
+              </AppCard>
+            </Reveal>
+          </>
         ) : (
           <>
             <Reveal index={6}>
+              <WeeklyChallengeCard plan={weeklyPlan} onPress={openWeekly} />
+            </Reveal>
+            <Reveal index={7}>
               <AssessmentEntryCard
                 lastScore={lastAssessment?.score}
                 onPress={() => router.push({ pathname: '/assessment', params: { source: 'today' } })}
               />
             </Reveal>
-            <Reveal index={7}>
+            <Reveal index={8}>
               <AppButton
-                title="Browse Exercises"
+                title="Free play exercises"
                 icon="grid-outline"
                 variant="secondary"
                 onPress={() => router.push('/practice')}

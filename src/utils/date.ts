@@ -43,15 +43,45 @@ export function weekdayFromKey(key: string): number {
   return new Date(y, m - 1, d).getDay();
 }
 
-/** Date keys for the current week (Monday..Sunday). */
-export function currentWeekKeys(): string[] {
-  const now = new Date();
-  const day = (now.getDay() + 6) % 7; // 0 = Monday
+/** Date keys for the week containing `from` (Monday..Sunday, local). */
+export function weekKeysFrom(from: Date = new Date()): string[] {
+  const day = (from.getDay() + 6) % 7; // 0 = Monday
   const keys: string[] = [];
   for (let i = 0; i < 7; i++) {
-    const d = new Date(now);
-    d.setDate(now.getDate() - day + i);
+    const d = new Date(from);
+    d.setDate(from.getDate() - day + i);
     keys.push(dateKey(d));
   }
   return keys;
+}
+
+/** Date keys for the current week (Monday..Sunday). */
+export function currentWeekKeys(): string[] {
+  return weekKeysFrom();
+}
+
+/** Monday date key of the week containing `from`. */
+export function weekStartKey(from: Date = new Date()): string {
+  return weekKeysFrom(from)[0];
+}
+
+export function currentWeekKey(): string {
+  return weekStartKey();
+}
+
+/**
+ * Stable week index from a Monday date key. 1970-01-05 was a Monday;
+ * used to rotate weekly challenge themes without a calendar library.
+ */
+export function weekIndexFromKey(mondayKey: string): number {
+  const [y, m, d] = mondayKey.split('-').map(Number);
+  const t = Date.UTC(y, m - 1, d);
+  const epochMonday = Date.UTC(1970, 0, 5);
+  return Math.floor((t - epochMonday) / (7 * 86_400_000));
+}
+
+/** Whole days from `fromKey` until the next Monday (Sunday → 1). */
+export function daysUntilNextWeek(fromKey: string): number {
+  const weekday = weekdayFromKey(fromKey); // 0 = Sunday
+  return weekday === 0 ? 1 : 8 - weekday;
 }
