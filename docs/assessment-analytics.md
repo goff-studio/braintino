@@ -1,6 +1,6 @@
 # Focus Snapshot analytics (issues #2 / #11)
 
-Organic DAU funnel events for this path only. Logged to Firebase Analytics and AppsFlyer via `src/services/analytics/assessmentEvents.ts`. No KPI dashboard.
+Organic DAU funnel events for this path only. Logged to Firebase Analytics and AppsFlyer via `src/services/analytics/assessmentEvents.ts`. KPI dashboard + weekly readout: `docs/kpi-funnel.md`.
 
 Assessments are entertainment / self-insight only — payloads must not imply a medical or diagnostic result.
 

@@ -1,9 +1,16 @@
 import {
+  classifyTrafficSource,
+  parseConversionPayload,
+  type TrafficSource,
+} from '@/services/analytics/trafficSource';
+import {
   appsflyer,
   APPSFLYER_DEV_KEY,
   APPSFLYER_IOS_APP_ID,
   ATT_WAIT_SECONDS,
 } from './appsflyer';
+
+export type TrafficSourceHandler = (info: { trafficSource: TrafficSource }) => void;
 
 /**
  * AppsFlyer attribution facade. UI and gameplay never touch the AppsFlyer SDK
@@ -21,14 +28,35 @@ import {
 class AppsFlyerServiceImpl {
   private started = false;
   private consentGranted = true;
+  private trafficSourceHandler: TrafficSourceHandler | null = null;
+  private lastTrafficSource: TrafficSource | null = null;
+
+  /**
+   * Organic vs paid from AppsFlyer conversion data (issue #11). Register
+   * before initialize() so the first callback is not missed. When the native
+   * module is absent we immediately report `organic`.
+   */
+  onTrafficSource(handler: TrafficSourceHandler): void {
+    this.trafficSourceHandler = handler;
+    if (this.lastTrafficSource) handler({ trafficSource: this.lastTrafficSource });
+  }
+
+  private emitTrafficSource(source: TrafficSource): void {
+    this.lastTrafficSource = source;
+    this.trafficSourceHandler?.({ trafficSource: source });
+  }
 
   /** One-time bootstrap. Called at app start from the root layout. */
   async initialize(analyticsEnabled: boolean): Promise<void> {
     if (this.started) return;
     const af = appsflyer();
-    if (!af) return;
+    if (!af) {
+      this.emitTrafficSource('organic');
+      return;
+    }
     this.started = true;
     this.consentGranted = analyticsEnabled;
+    this.registerConversionData(af);
 
     // Honor the privacy toggle before the SDK sends anything. stop(true) puts
     // the SDK in a halted state; initSdk still runs (needed to configure it) but
@@ -46,11 +74,24 @@ class AppsFlyerServiceImpl {
         isDebug: __DEV__,
         // Wait for the iOS ATT decision so the IDFA is attached when granted.
         timeToWaitForATTUserAuthorization: ATT_WAIT_SECONDS,
-        onInstallConversionDataListener: false,
+        onInstallConversionDataListener: true,
         onDeepLinkListener: false,
       });
     } catch (e) {
       if (__DEV__) console.log('[AppsFlyer] initSdk failed', e);
+    }
+  }
+
+  private registerConversionData(af: NonNullable<ReturnType<typeof appsflyer>>): void {
+    try {
+      af.onInstallConversionData((res) => {
+        if (!this.consentGranted) return;
+        const source = classifyTrafficSource(parseConversionPayload(res));
+        this.emitTrafficSource(source);
+      });
+    } catch (e) {
+      if (__DEV__) console.log('[AppsFlyer] conversion listener failed', e);
+      this.emitTrafficSource('organic');
     }
   }
 

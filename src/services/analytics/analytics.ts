@@ -5,8 +5,10 @@ import {
   logEvent,
   logScreenView,
   setAnalyticsCollectionEnabled,
+  setUserProperty,
   type FirebaseAnalyticsTypes,
 } from '@react-native-firebase/analytics';
+import { getTrafficSource, type TrafficSource } from '@/services/analytics/trafficSource';
 
 /**
  * Thin wrapper around Firebase Analytics (modular API).
@@ -30,7 +32,10 @@ export async function initAnalytics(enabled: boolean = true): Promise<void> {
   initialized = true;
   try {
     await setAnalyticsCollectionEnabled(instance(), enabled);
-    if (enabled) await logAppOpen(instance());
+    if (enabled) {
+      await logAppOpen(instance());
+      await setUserProperty(instance(), 'traffic_source', getTrafficSource());
+    }
   } catch (e) {
     // Never let analytics break app startup (e.g. Expo Go / missing native config).
     if (__DEV__) console.warn('[analytics] init failed', e);
@@ -55,6 +60,15 @@ export async function trackScreen(name: string): Promise<void> {
     await logScreenView(instance(), { screen_name: name, screen_class: name });
   } catch (e) {
     if (__DEV__) console.warn('[analytics] trackScreen failed', e);
+  }
+}
+
+/** Tag the Firebase user so GA4 can filter organic vs paid (issue #11). */
+export async function setTrafficSourceProperty(source: TrafficSource): Promise<void> {
+  try {
+    await setUserProperty(instance(), 'traffic_source', source);
+  } catch (e) {
+    if (__DEV__) console.warn('[analytics] traffic_source property failed', e);
   }
 }
 

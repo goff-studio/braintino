@@ -41,6 +41,11 @@ export type PlayerSettings = {
   firstOpenDate: string | null;
   /** Whether d1_return has already been logged for this install. */
   d1ReturnLogged: boolean;
+  /**
+   * AppsFlyer organic vs paid tag (issue #11). Defaults to organic until
+   * conversion data says otherwise. Paid UA is unused today.
+   */
+  trafficSource: 'organic' | 'paid';
 };
 
 export const defaultSettings: PlayerSettings = {
@@ -59,4 +64,5 @@ export const defaultSettings: PlayerSettings = {
   reminderAnchor: null,
   firstOpenDate: null,
   d1ReturnLogged: false,
+  trafficSource: 'organic',
 };

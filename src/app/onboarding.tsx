@@ -70,11 +70,16 @@ export default function OnboardingScreen() {
   };
 
   const finish = (calibrate: boolean, next?: '/assessment') => {
-    completeOnboarding(mode, {
-      biggerText,
-      reducedMotion: reduceMotionPref,
-      highContrast,
-    });
+    const exit = next === '/assessment' ? 'assessment' : calibrate ? 'calibration' : 'home';
+    completeOnboarding(
+      mode,
+      {
+        biggerText,
+        reducedMotion: reduceMotionPref,
+        highContrast,
+      },
+      exit
+    );
     // The warm-up staircase seeds the starting level; skipping keeps the
     // mode baseline and lets the placement-phase adaptation catch up.
     // Focus Snapshot is an optional curiosity path (issue #2), not required.

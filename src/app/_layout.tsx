@@ -46,6 +46,9 @@ export default function RootLayout() {
       .then(async () => {
         const { analyticsEnabled } = useGameStore.getState().settings;
         await initAnalytics(analyticsEnabled);
+        AppsFlyerService.onTrafficSource(({ trafficSource }) => {
+          useGameStore.getState().applyTrafficSource(trafficSource);
+        });
         AppsFlyerService.initialize(analyticsEnabled);
         useGameStore.getState().maybeTrackD1Return();
         PurchaseService.initialize();
