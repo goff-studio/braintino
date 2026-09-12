@@ -1,6 +1,7 @@
 import { WEEKDAY_THEMES } from '@/data/dailyPlans';
 import { MINI_GAME_IDS, MINI_GAMES } from '@/data/miniGames';
 import type { MiniGameId } from '@/types/game';
+import type { PersonalPlan } from '@/types/plan';
 import type { PlayerProgress } from '@/types/progress';
 import { daysAgoKey, weekdayFromKey } from '@/utils/date';
 import { rngFromString, shuffle } from '@/utils/random';
@@ -15,12 +16,34 @@ function unlockedGames(progress: PlayerProgress): MiniGameId[] {
   return MINI_GAME_IDS.filter((id) => MINI_GAMES[id].unlockLevel <= progress.globalLevel);
 }
 
+/** First daily uses the onboarding mix so Today matches the generated plan. */
+export function shouldUseOnboardingPlan(
+  progress: PlayerProgress,
+  personalPlan?: PersonalPlan | null
+): personalPlan is PersonalPlan {
+  return Boolean(personalPlan && progress.dailyHistory.length === 0);
+}
+
 /**
  * Deterministic plan for a given date: the same day always returns the same
  * plan, tomorrow's differs, and yesterday's exact set is never repeated.
  * Focus Flash appears often because it is the core game.
+ *
+ * Before the first daily completion, a stored personal plan replaces the
+ * weekday mix so onboarding → Today shows the same three exercises.
  */
-export function getTodayDailyPlan(dateKey: string, progress: PlayerProgress): DailyPlan {
+export function getTodayDailyPlan(
+  dateKey: string,
+  progress: PlayerProgress,
+  personalPlan?: PersonalPlan | null
+): DailyPlan {
+  if (shouldUseOnboardingPlan(progress, personalPlan)) {
+    return {
+      dateKey,
+      title: personalPlan.title,
+      games: [...personalPlan.recommendedGames],
+    };
+  }
   const weekday = weekdayFromKey(dateKey);
   const theme = WEEKDAY_THEMES[weekday];
   const unlocked = unlockedGames(progress);
