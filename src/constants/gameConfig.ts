@@ -93,4 +93,20 @@ export const gameConfig = {
   } as Record<string, number>,
 
   dailyGamesPerSession: 3,
+
+  /**
+   * Focus Snapshot — a standalone entertainment assessment (issue #2).
+   * Uses Processing Speed (FocusFlash) at a fixed adult-ish level so
+   * scores are comparable for sharing. Does not award XP or change
+   * training difficulty. Not medical / not diagnostic.
+   */
+  assessment: {
+    id: 'focus_snapshot',
+    gameId: 'focus_flash' as const,
+    /** ~60–90s at a typical answer pace (forced time + responses). */
+    rounds: 18,
+    /** Standardized level (adult baseline is 4). */
+    level: 5,
+    durationLabel: 'about 90 seconds',
+  },
 } as const;

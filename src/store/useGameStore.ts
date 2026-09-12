@@ -11,6 +11,10 @@ import {
   isSessionComplete,
   recordResult,
 } from '@/game/engines/session';
+import {
+  trackAssessmentCompleted,
+  trackAssessmentStarted,
+} from '@/services/analytics/assessmentEvents';
 import { setAnalyticsConsent, trackEvent } from '@/services/analytics/analytics';
 import { AppsFlyerService } from '@/services/attribution/AppsFlyerService';
 import { setSoundEnabled } from '@/services/audio/audio';
@@ -25,6 +29,7 @@ import {
   type ReminderPermission,
 } from '@/services/notifications/notifications';
 import * as storage from '@/services/storage/storage';
+import type { AssessmentResult, AssessmentSource } from '@/types/assessment';
 import type { MiniGameId, MiniGameResult, SessionState } from '@/types/game';
 import type { MiniGameProgress, PlayerProgress } from '@/types/progress';
 import {
@@ -54,6 +59,10 @@ type GameStore = {
   lastResult: MiniGameResult | null;
   /** Milestones earned by the most recent result, for the results screen. */
   lastEarnedBadges: BadgeDef[];
+  /** Last completed Focus Snapshot (entertainment only). */
+  lastAssessment: AssessmentResult | null;
+  /** Entry source for the in-progress snapshot (funnel #11). */
+  assessmentSource: AssessmentSource;
 
   hydrate: () => Promise<void>;
   updateSettings: (partial: Partial<PlayerSettings>) => void;
@@ -74,6 +83,10 @@ type GameStore = {
    * inherits it via getStartingLevel on first play.
    */
   completeCalibration: (placement: number, blocksPlayed: number) => void;
+  /** Begin a Focus Snapshot. Logs assessment_started; does not start a practice session. */
+  startAssessment: (source: AssessmentSource) => void;
+  /** Persist a finished snapshot and log assessment_completed. */
+  completeAssessment: (result: AssessmentResult) => void;
 
   startDailySession: () => SessionState;
   startPracticeSession: (gameId: MiniGameId) => SessionState;
@@ -95,19 +108,22 @@ export const useGameStore = create<GameStore>((set, get) => ({
   session: null,
   lastResult: null,
   lastEarnedBadges: [],
+  lastAssessment: null,
+  assessmentSource: 'deeplink',
 
   hydrate: async () => {
     // Settings first: the v1→v2 progress migration maps old levels onto the
     // new scale using the player's difficulty mode.
     const settings = await storage.loadSettings();
     const progress = await storage.loadProgress(settings.difficultyMode);
+    const lastAssessment = await storage.loadLastAssessment();
     // Cached entitlement verdict first (sync ad gating at boot); the change
     // listener keeps the store current once RevenueCat configures.
     const adFree = await PurchaseService.loadCachedAdFree();
     PurchaseService.subscribe((value) => set({ adFree: value }));
     setSoundEnabled(settings.soundEnabled);
     setHapticsEnabled(settings.hapticsEnabled);
-    set({ progress, settings, adFree, hydrated: true });
+    set({ progress, settings, adFree, lastAssessment, hydrated: true });
     // Reconcile the local reminder schedule with settings: refreshes the
     // rolling every-other-day window and catches a permission revoked in
     // system Settings since last launch.
@@ -208,6 +224,17 @@ export const useGameStore = create<GameStore>((set, get) => ({
       blocks: blocksPlayed,
       mode: state.settings.difficultyMode,
     });
+  },
+
+  startAssessment: (source) => {
+    set({ assessmentSource: source });
+    trackAssessmentStarted(source, gameConfig.assessment.id);
+  },
+
+  completeAssessment: (result) => {
+    set({ lastAssessment: result, assessmentSource: result.source });
+    storage.saveLastAssessment(result);
+    trackAssessmentCompleted(result);
   },
 
   startDailySession: () => {
@@ -330,11 +357,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   resetAllProgress: async () => {
     await storage.resetProgress();
+    await storage.clearLastAssessment();
     set({
       progress: storage.createDefaultProgress(),
       session: null,
       lastResult: null,
       lastEarnedBadges: [],
+      lastAssessment: null,
+      assessmentSource: 'deeplink',
     });
   },
 }));

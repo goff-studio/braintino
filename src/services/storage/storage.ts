@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { gameConfig } from '@/constants/gameConfig';
+import type { AssessmentResult } from '@/types/assessment';
 import type { MiniGameResult } from '@/types/game';
 import type { PlayerProgress } from '@/types/progress';
 import { defaultSettings, type DifficultyMode, type PlayerSettings } from '@/types/settings';
@@ -9,6 +10,7 @@ import { clamp } from '@/utils/math';
 const KEYS = {
   progress: 'braintino.progress.v2',
   settings: 'braintino.settings.v2',
+  assessment: 'braintino.assessment.v1',
 } as const;
 
 /** Pre-redesign keys. Kept on disk for rollback; read once for migration. */
@@ -160,6 +162,34 @@ export async function saveSettings(settings: PlayerSettings): Promise<void> {
 export async function resetProgress(): Promise<void> {
   try {
     await AsyncStorage.multiRemove([KEYS.progress, LEGACY_KEYS.progress]);
+  } catch {
+    // ignore
+  }
+}
+
+function isAssessmentResult(value: Record<string, unknown>): value is AssessmentResult {
+  return (
+    value.id === 'focus_snapshot' &&
+    typeof value.score === 'number' &&
+    typeof value.focus === 'number' &&
+    typeof value.speed === 'number' &&
+    typeof value.consistency === 'number'
+  );
+}
+
+export async function loadLastAssessment(): Promise<AssessmentResult | null> {
+  const raw = await readJson(KEYS.assessment);
+  if (!raw || !isAssessmentResult(raw)) return null;
+  return raw;
+}
+
+export async function saveLastAssessment(result: AssessmentResult): Promise<void> {
+  return saveJson(KEYS.assessment, result);
+}
+
+export async function clearLastAssessment(): Promise<void> {
+  try {
+    await AsyncStorage.removeItem(KEYS.assessment);
   } catch {
     // ignore
   }

@@ -3,6 +3,7 @@ import React from 'react';
 import { ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
+import { AssessmentEntryCard } from '@/components/AssessmentEntryCard';
 import { ExerciseCard } from '@/components/ExerciseCard';
 import { Reveal } from '@/components/Reveal';
 import { ScreenBackground } from '@/components/ScreenBackground';
@@ -20,6 +21,7 @@ export default function PracticeScreen() {
   const progress = useGameStore((s) => s.progress);
   const settings = useGameStore((s) => s.settings);
   const startPracticeSession = useGameStore((s) => s.startPracticeSession);
+  const lastAssessment = useGameStore((s) => s.lastAssessment);
 
   return (
     <ScreenBackground gradient={gradients.progress}>
@@ -39,13 +41,19 @@ export default function PracticeScreen() {
             Choose an exercise and practice at your own pace. Difficulty adapts to your accuracy.
           </AppText>
         </Reveal>
+        <Reveal index={2}>
+          <AssessmentEntryCard
+            lastScore={lastAssessment?.score}
+            onPress={() => router.push({ pathname: '/assessment', params: { source: 'practice' } })}
+          />
+        </Reveal>
 
         {MINI_GAME_IDS.map((id, i) => {
           const game = MINI_GAMES[id];
           const mg = progress.miniGameProgress[id];
           const locked = game.unlockLevel > progress.globalLevel;
           return (
-            <Reveal key={id} index={i + 2}>
+            <Reveal key={id} index={i + 3}>
               <ExerciseCard
                 config={game}
                 level={mg?.level ?? getStartingLevel(progress, settings.difficultyMode)}

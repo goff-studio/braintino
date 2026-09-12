@@ -75,6 +75,7 @@ export default function RootLayout() {
         <Stack.Screen name="daily" />
         <Stack.Screen name="play/[gameId]" options={{ gestureEnabled: false }} />
         <Stack.Screen name="results" options={{ gestureEnabled: false }} />
+        <Stack.Screen name="assessment" />
       </Stack>
     </GestureHandlerRootView>
   );

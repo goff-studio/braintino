@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { AppButton } from '@/components/AppButton';
 import { AppCard } from '@/components/AppCard';
 import { AppText } from '@/components/AppText';
+import { AssessmentEntryCard } from '@/components/AssessmentEntryCard';
 import { Reveal } from '@/components/Reveal';
 import { ScreenBackground } from '@/components/ScreenBackground';
 import { StatCard } from '@/components/StatCard';
@@ -27,6 +28,7 @@ export default function TodayScreen() {
   const { colors } = useTheme();
   const progress = useGameStore((s) => s.progress);
   const startDailySession = useGameStore((s) => s.startDailySession);
+  const lastAssessment = useGameStore((s) => s.lastAssessment);
 
   const today = todayKey();
   const plan = useMemo(() => getTodayDailyPlan(today, progress), [today, progress]);
@@ -176,8 +178,15 @@ export default function TodayScreen() {
           </View>
         </View>
 
-        {/* Practice library shortcut */}
         <Reveal index={6}>
+          <AssessmentEntryCard
+            lastScore={lastAssessment?.score}
+            onPress={() => router.push({ pathname: '/assessment', params: { source: 'today' } })}
+          />
+        </Reveal>
+
+        {/* Practice library shortcut */}
+        <Reveal index={7}>
           <AppButton
             title="Browse Exercises"
             icon="grid-outline"

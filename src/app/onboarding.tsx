@@ -68,7 +68,7 @@ export default function OnboardingScreen() {
     setStep(3);
   };
 
-  const finish = (calibrate: boolean) => {
+  const finish = (calibrate: boolean, next?: '/assessment') => {
     completeOnboarding(mode, {
       biggerText,
       reducedMotion: reduceMotionPref,
@@ -76,6 +76,11 @@ export default function OnboardingScreen() {
     });
     // The warm-up staircase seeds the starting level; skipping keeps the
     // mode baseline and lets the placement-phase adaptation catch up.
+    // Focus Snapshot is an optional curiosity path (issue #2), not required.
+    if (next === '/assessment') {
+      router.replace({ pathname: '/assessment', params: { source: 'onboarding' } });
+      return;
+    }
     router.replace(calibrate ? '/calibration' : '/(tabs)');
   };
 
@@ -376,6 +381,14 @@ export default function OnboardingScreen() {
               <AppButton title="Find My Level" icon="play" onPress={() => finish(true)} />
             </Reveal>
             <Reveal index={2} exit>
+              <AppButton
+                title="Try a Focus Snapshot"
+                icon="flash-outline"
+                variant="secondary"
+                onPress={() => finish(false, '/assessment')}
+              />
+            </Reveal>
+            <Reveal index={3} exit>
               <AppButton title="Skip for now" variant="ghost" onPress={() => finish(false)} />
             </Reveal>
           </View>
