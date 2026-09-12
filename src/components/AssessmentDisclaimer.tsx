@@ -1,9 +1,9 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppText } from '@/components/AppText';
 import { spacing } from '@/constants/spacing';
-import { ASSESSMENT_DISCLAIMER } from '@/game/engines/assessment';
 import { useTheme } from '@/hooks/useTheme';
 
 type Props = {
@@ -12,6 +12,7 @@ type Props = {
 
 /** Entertainment-only notice. Never imply a medical or diagnostic result. */
 export function AssessmentDisclaimer({ compact }: Props) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   return (
     <View
@@ -25,7 +26,7 @@ export function AssessmentDisclaimer({ compact }: Props) {
     >
       <Ionicons name="information-circle-outline" size={16} color={colors.textMuted} style={{ marginTop: 1 }} />
       <AppText variant="caption" color={colors.textMuted} style={{ flex: 1 }}>
-        {ASSESSMENT_DISCLAIMER}
+        {t('assessment.disclaimer')}
       </AppText>
     </View>
   );

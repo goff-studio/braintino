@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Modal, View } from 'react-native';
 import { radius, spacing } from '@/constants/spacing';
 import { useTheme } from '@/hooks/useTheme';
@@ -14,6 +15,7 @@ type Props = {
 };
 
 export function PauseModal({ visible, onResume, onRestart, onExit }: Props) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onResume}>
@@ -39,18 +41,18 @@ export function PauseModal({ visible, onResume, onRestart, onExit }: Props) {
         >
           <Reveal index={0}>
             <AppText variant="title" center>
-              Paused
+              {t('pause.title')}
             </AppText>
           </Reveal>
           <Reveal index={1}>
             <AppText variant="body" color={colors.textSoft} center>
-              Your progress is saved.
+              {t('pause.saved')}
             </AppText>
           </Reveal>
           <Reveal index={2} style={{ alignSelf: 'stretch', gap: spacing.md, marginTop: spacing.sm }}>
-            <AppButton title="Resume" icon="play" onPress={onResume} />
-            <AppButton title="Restart" icon="refresh" variant="secondary" onPress={onRestart} />
-            <AppButton title="End session" variant="ghost" onPress={onExit} />
+            <AppButton title={t('pause.resume')} icon="play" onPress={onResume} />
+            <AppButton title={t('pause.restart')} icon="refresh" variant="secondary" onPress={onRestart} />
+            <AppButton title={t('pause.end')} variant="ghost" onPress={onExit} />
           </Reveal>
         </View>
       </View>

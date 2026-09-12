@@ -1,5 +1,6 @@
 import { useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -25,24 +26,22 @@ import {
 } from '@/services/analytics/onboardingEvents';
 import { tapHaptic } from '@/services/haptics/haptics';
 import { useGameStore } from '@/store/useGameStore';
-import { PLAN_DISCLAIMER, type PlanAgeBand, type PlanGoal, type PlanWeakSpot } from '@/types/plan';
+import { formatClock } from '@/i18n/copy';
+import type { PlanAgeBand, PlanGoal, PlanWeakSpot } from '@/types/plan';
 import type { ReminderFrequency } from '@/types/settings';
 
-const REMINDER_FREQUENCIES: { id: ReminderFrequency; label: string; description: string }[] = [
-  { id: 'daily', label: 'Daily', description: 'Every day' },
-  { id: 'everyOtherDay', label: 'Alternate', description: 'Every other day' },
-  { id: 'weekdays', label: 'Weekdays', description: 'Mon – Fri' },
-];
+const REMINDER_FREQUENCIES: ReminderFrequency[] = ['daily', 'everyOtherDay', 'weekdays'];
 
-const REMINDER_TIMES: { label: string; description: string; hour: number; minute: number }[] = [
-  { label: 'Morning', description: '9:00 AM', hour: 9, minute: 0 },
-  { label: 'Afternoon', description: '2:00 PM', hour: 14, minute: 0 },
-  { label: 'Evening', description: '7:00 PM', hour: 19, minute: 0 },
+const REMINDER_TIMES: { id: 'morning' | 'afternoon' | 'evening'; hour: number; minute: number }[] = [
+  { id: 'morning', hour: 9, minute: 0 },
+  { id: 'afternoon', hour: 14, minute: 0 },
+  { id: 'evening', hour: 19, minute: 0 },
 ];
 
 const PLAN_STEP = ONBOARDING_STEPS.length - 1;
 
 export default function OnboardingScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
@@ -146,7 +145,7 @@ export default function OnboardingScreen() {
           {step > 0 ? (
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="Back"
+              accessibilityLabel={t('common.back')}
               onPress={() => {
                 tapHaptic();
                 setStep((current) => Math.max(0, current - 1));
@@ -194,22 +193,21 @@ export default function OnboardingScreen() {
                 center
                 style={{ letterSpacing: 1.2 }}
               >
-                DAILY COGNITIVE PRACTICE
+                {t('common.brandTag')}
               </AppText>
             </Reveal>
             <Reveal index={1} exit>
               <AppText variant="bodyLarge" color={colors.textSoft} center>
-                A few quick questions and we&apos;ll build a five-minute personal plan — for fun and
-                self-insight, not a diagnosis.
+                {t('onboarding.intro')}
               </AppText>
             </Reveal>
             <Reveal index={2} exit>
               <AppText variant="caption" color={colors.textMuted} center>
-                {PLAN_DISCLAIMER}
+                {t('plan.disclaimer')}
               </AppText>
             </Reveal>
             <Reveal index={3} exit>
-              <AppButton title="Get Started" icon="arrow-forward" onPress={() => setStep(1)} />
+              <AppButton title={t('onboarding.getStarted')} icon="arrow-forward" onPress={() => setStep(1)} />
             </Reveal>
           </View>
         )}
@@ -218,20 +216,20 @@ export default function OnboardingScreen() {
           <View style={{ gap: spacing.lg }}>
             <Reveal index={0} exit>
               <AppText variant="title" center>
-                What do you want to work on?
+                {t('onboarding.goalTitle')}
               </AppText>
             </Reveal>
             <Reveal index={1} exit>
               <AppText variant="body" color={colors.textSoft} center>
-                Pick the practice vibe that sounds most useful. You can change pace later.
+                {t('onboarding.goalBody')}
               </AppText>
             </Reveal>
             <View style={{ gap: spacing.md }}>
               {GOAL_OPTIONS.map((option, i) => (
                 <Reveal key={option.id} index={i + 2} exit>
                   <SelectableRow
-                    label={option.label}
-                    description={option.description}
+                    label={t(`onboarding.goals.${option.id}.label`)}
+                    description={t(`onboarding.goals.${option.id}.description`)}
                     icon={option.icon}
                     selected={goal === option.id}
                     onPress={() => setGoal(option.id)}
@@ -241,7 +239,7 @@ export default function OnboardingScreen() {
             </View>
             <Reveal index={7} exit>
               <AppButton
-                title="Continue"
+                title={t('common.continue')}
                 icon="arrow-forward"
                 disabled={!goal}
                 onPress={() => setStep(2)}
@@ -254,20 +252,20 @@ export default function OnboardingScreen() {
           <View style={{ gap: spacing.lg }}>
             <Reveal index={0} exit>
               <AppText variant="title" center>
-                Which age band fits?
+                {t('onboarding.ageTitle')}
               </AppText>
             </Reveal>
             <Reveal index={1} exit>
               <AppText variant="body" color={colors.textSoft} center>
-                This only seeds a comfortable starting pace — never a score or diagnosis.
+                {t('onboarding.ageBody')}
               </AppText>
             </Reveal>
             <View style={{ gap: spacing.md }}>
               {AGE_OPTIONS.map((option, i) => (
                 <Reveal key={option.id} index={i + 2} exit>
                   <SelectableRow
-                    label={option.label}
-                    description={option.description}
+                    label={t(`onboarding.ages.${option.id}.label`)}
+                    description={t(`onboarding.ages.${option.id}.description`)}
                     icon={option.icon}
                     selected={ageBand === option.id}
                     onPress={() => setAgeBand(option.id)}
@@ -277,7 +275,7 @@ export default function OnboardingScreen() {
             </View>
             <Reveal index={7} exit>
               <AppButton
-                title="Continue"
+                title={t('common.continue')}
                 icon="arrow-forward"
                 disabled={!ageBand}
                 onPress={() => setStep(3)}
@@ -290,23 +288,23 @@ export default function OnboardingScreen() {
           <View style={{ gap: spacing.lg }}>
             <Reveal index={0} exit>
               <AppText variant="title" center>
-                Where should we lean in?
+                {t('onboarding.weakTitle')}
               </AppText>
             </Reveal>
             <Reveal index={1} exit>
               <AppText variant="body" color={colors.textSoft} center>
-                Choose one or more. These are practice preferences, not symptoms.
+                {t('onboarding.weakBody')}
               </AppText>
             </Reveal>
             <View style={{ gap: spacing.md }}>
               {WEAK_SPOT_OPTIONS.map((option, i) => (
                 <Reveal key={option.id} index={i + 2} exit>
                   <SelectableRow
-                    label={option.label}
-                    description={option.description}
+                    label={t(`onboarding.weakSpots.${option.id}.label`)}
+                    description={t(`onboarding.weakSpots.${option.id}.description`)}
                     icon={option.icon}
                     selected={weakSpots.includes(option.id)}
-                    accessibilityHint="Toggles this preference on or off"
+                    accessibilityHint={t('onboarding.weakHint')}
                     onPress={() => toggleWeakSpot(option.id)}
                   />
                 </Reveal>
@@ -314,7 +312,7 @@ export default function OnboardingScreen() {
             </View>
             <Reveal index={7} exit>
               <AppButton
-                title="Continue"
+                title={t('common.continue')}
                 icon="arrow-forward"
                 disabled={weakSpots.length === 0}
                 onPress={() => setStep(4)}
@@ -340,11 +338,10 @@ export default function OnboardingScreen() {
                   <Ionicons name="time-outline" size={32} color={colors.primary} />
                 </View>
                 <AppText variant="title" center>
-                  Five minutes a day
+                  {t('onboarding.timeTitle')}
                 </AppText>
                 <AppText variant="body" color={colors.textSoft} center>
-                  That&apos;s the whole daily session — three short exercises. No longer homework, no
-                  extra time commitment.
+                  {t('onboarding.timeBody')}
                 </AppText>
               </AppCard>
             </Reveal>
@@ -365,16 +362,16 @@ export default function OnboardingScreen() {
                 <Ionicons name="checkmark-circle" size={26} color={colors.primary} />
                 <View style={{ flex: 1 }}>
                   <AppText variant="bodyLarge" weight="bold">
-                    5 minutes
+                    {t('onboarding.timeSelected')}
                   </AppText>
                   <AppText variant="caption" color={colors.textSoft}>
-                    The existing daily loop — already selected
+                    {t('onboarding.timeSelectedBody')}
                   </AppText>
                 </View>
               </View>
             </Reveal>
             <Reveal index={2} exit>
-              <AppButton title="Five minutes works" icon="arrow-forward" onPress={() => setStep(5)} />
+              <AppButton title={t('onboarding.timeCta')} icon="arrow-forward" onPress={() => setStep(5)} />
             </Reveal>
           </View>
         )}
@@ -396,11 +393,10 @@ export default function OnboardingScreen() {
                   <Ionicons name="alarm-outline" size={32} color={colors.primary} />
                 </View>
                 <AppText variant="title" center>
-                  Make it a routine
+                  {t('onboarding.reminderTitle')}
                 </AppText>
                 <AppText variant="body" color={colors.textSoft} center>
-                  Practice sticks when it&apos;s regular. Daily at 9:00 AM is already selected — confirm
-                  the nudge, or skip. Reminders stay on this device.
+                  {t('onboarding.reminderBody')}
                 </AppText>
               </AppCard>
             </Reveal>
@@ -408,20 +404,20 @@ export default function OnboardingScreen() {
             <Reveal index={1} exit>
               <View style={{ gap: spacing.sm }}>
                 <AppText variant="caption" weight="semiBold" color={colors.textMuted}>
-                  HOW OFTEN
+                  {t('onboarding.howOften')}
                 </AppText>
                 <View style={{ flexDirection: 'row', gap: spacing.sm }}>
                   {REMINDER_FREQUENCIES.map((freq) => {
-                    const active = reminderFrequency === freq.id;
+                    const active = reminderFrequency === freq;
                     return (
                       <Pressable
-                        key={freq.id}
+                        key={freq}
                         accessibilityRole="button"
-                        accessibilityLabel={`${freq.label}: ${freq.description}`}
+                        accessibilityLabel={`${t(`profile.frequencies.${freq}.label`)}: ${t(`profile.frequencies.${freq}.description`)}`}
                         accessibilityState={{ selected: active }}
                         onPress={() => {
                           tapHaptic();
-                          setReminderFrequency(freq.id);
+                          setReminderFrequency(freq);
                         }}
                         style={{
                           flex: 1,
@@ -436,10 +432,12 @@ export default function OnboardingScreen() {
                         }}
                       >
                         <AppText variant="body" weight="bold" color={active ? colors.primary : colors.text}>
-                          {freq.label}
+                          {t(`profile.frequencies.${freq}.label`)}
                         </AppText>
                         <AppText variant="caption" color={colors.textSoft} center>
-                          {freq.id === 'daily' ? 'Recommended' : freq.description}
+                          {freq === 'daily'
+                            ? t('onboarding.recommended')
+                            : t(`profile.frequencies.${freq}.description`)}
                         </AppText>
                       </Pressable>
                     );
@@ -451,16 +449,20 @@ export default function OnboardingScreen() {
             <Reveal index={2} exit>
               <View style={{ gap: spacing.sm }}>
                 <AppText variant="caption" weight="semiBold" color={colors.textMuted}>
-                  WHAT TIME
+                  {t('onboarding.whatTime')}
                 </AppText>
                 <View style={{ flexDirection: 'row', gap: spacing.sm }}>
                   {REMINDER_TIMES.map((time) => {
-                    const active = reminderTime.label === time.label;
+                    const clock = formatClock(time.hour, time.minute);
+                    const active = reminderTime.id === time.id;
                     return (
                       <Pressable
-                        key={time.label}
+                        key={time.id}
                         accessibilityRole="button"
-                        accessibilityLabel={`Remind me in the ${time.label.toLowerCase()} at ${time.description}`}
+                        accessibilityLabel={t('onboarding.remindA11y', {
+                          period: t(`profile.times.${time.id}`),
+                          time: clock,
+                        })}
                         accessibilityState={{ selected: active }}
                         onPress={() => {
                           tapHaptic();
@@ -479,10 +481,10 @@ export default function OnboardingScreen() {
                         }}
                       >
                         <AppText variant="body" weight="bold" color={active ? colors.primary : colors.text}>
-                          {time.label}
+                          {t(`profile.times.${time.id}`)}
                         </AppText>
                         <AppText variant="caption" color={colors.textSoft} center>
-                          {time.description}
+                          {clock}
                         </AppText>
                       </Pressable>
                     );
@@ -495,10 +497,10 @@ export default function OnboardingScreen() {
               <AppButton
                 title={
                   reminderFrequency === 'daily'
-                    ? `Remind me daily at ${reminderTime.description}`
+                    ? t('onboarding.remindDaily', { time: formatClock(reminderTime.hour, reminderTime.minute) })
                     : reminderFrequency === 'weekdays'
-                      ? `Remind me weekdays at ${reminderTime.description}`
-                      : `Remind me every other day at ${reminderTime.description}`
+                      ? t('onboarding.remindWeekdays', { time: formatClock(reminderTime.hour, reminderTime.minute) })
+                      : t('onboarding.remindAlternate', { time: formatClock(reminderTime.hour, reminderTime.minute) })
                 }
                 icon="notifications-outline"
                 disabled={requestingReminder}
@@ -506,7 +508,7 @@ export default function OnboardingScreen() {
               />
             </Reveal>
             <Reveal index={4} exit>
-              <AppButton title="Not now" variant="ghost" onPress={() => setStep(PLAN_STEP)} />
+              <AppButton title={t('common.notNow')} variant="ghost" onPress={() => setStep(PLAN_STEP)} />
             </Reveal>
           </View>
         )}
@@ -515,7 +517,7 @@ export default function OnboardingScreen() {
           <View style={{ gap: spacing.lg }}>
             <Reveal index={0} exit>
               <AppText variant="title" center>
-                Your personal plan
+                {t('onboarding.planTitle')}
               </AppText>
             </Reveal>
             <Reveal index={1} exit>
@@ -526,7 +528,7 @@ export default function OnboardingScreen() {
                 <Pressable
                   accessibilityRole="button"
                   accessibilityState={{ expanded: showA11y }}
-                  accessibilityLabel="Accessibility options"
+                  accessibilityLabel={t('onboarding.a11yOptions')}
                   onPress={() => {
                     tapHaptic();
                     setShowA11y((open) => !open);
@@ -539,7 +541,7 @@ export default function OnboardingScreen() {
                   }}
                 >
                   <AppText variant="caption" weight="semiBold" color={colors.textMuted}>
-                    ACCESSIBILITY
+                    {t('onboarding.a11y')}
                   </AppText>
                   <Ionicons
                     name={showA11y ? 'chevron-up' : 'chevron-down'}
@@ -550,39 +552,39 @@ export default function OnboardingScreen() {
                 {showA11y && (
                   <>
                     <ToggleRow
-                      label="Bigger text"
-                      description="Larger text throughout the app"
+                      label={t('profile.biggerText')}
+                      description={t('profile.biggerTextBody')}
                       icon="text-outline"
                       value={biggerText}
                       onValueChange={setBiggerText}
                     />
                     <ToggleRow
-                      label="Reduced motion"
-                      description="Minimal animations"
+                      label={t('profile.reducedMotion')}
+                      description={t('profile.reducedMotionBody')}
                       icon="pause-circle-outline"
                       value={reduceMotionPref}
                       onValueChange={setReduceMotionPref}
                     />
                     <ToggleRow
-                      label="High contrast"
-                      description="Stronger colors and outlines"
+                      label={t('profile.highContrast')}
+                      description={t('profile.highContrastBody')}
                       icon="contrast-outline"
                       value={highContrast}
                       onValueChange={setHighContrast}
                     />
                     <AppText variant="caption" color={colors.textMuted}>
-                      These stay available in Profile anytime.
+                      {t('onboarding.a11yStay')}
                     </AppText>
                   </>
                 )}
               </AppCard>
             </Reveal>
             <Reveal index={3} exit>
-              <AppButton title="Find My Level" icon="play" onPress={() => finish('calibration')} />
+              <AppButton title={t('onboarding.findLevel')} icon="play" onPress={() => finish('calibration')} />
             </Reveal>
             <Reveal index={4} exit>
               <AppButton
-                title="Start today’s session"
+                title={t('onboarding.startToday')}
                 icon="sunny-outline"
                 variant="secondary"
                 onPress={() => finish('first_session')}
@@ -590,14 +592,14 @@ export default function OnboardingScreen() {
             </Reveal>
             <Reveal index={5} exit>
               <AppButton
-                title="Try a Focus Snapshot"
+                title={t('onboarding.trySnapshot')}
                 icon="flash-outline"
                 variant="secondary"
                 onPress={() => finish('assessment')}
               />
             </Reveal>
             <Reveal index={6} exit>
-              <AppButton title="Skip for now" variant="ghost" onPress={() => finish('today')} />
+              <AppButton title={t('common.skipForNow')} variant="ghost" onPress={() => finish('today')} />
             </Reveal>
           </View>
         )}

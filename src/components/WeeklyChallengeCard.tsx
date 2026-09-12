@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppButton } from '@/components/AppButton';
@@ -7,7 +8,7 @@ import { AppText } from '@/components/AppText';
 import { spacing } from '@/constants/spacing';
 import { MINI_GAMES } from '@/data/miniGames';
 import type { WeeklyChallengePlan } from '@/game/engines/weeklyChallenge';
-import { weeklyTwistLabel } from '@/game/engines/weeklyChallenge';
+import { localizedGameShort, localizedWeeklyBlurb, localizedWeeklyTitle, localizedWeeklyTwist } from '@/i18n/copy';
 import { useTheme } from '@/hooks/useTheme';
 
 type Props = {
@@ -19,6 +20,7 @@ type Props = {
 
 /** Today / Practice entry for this week’s 3-exercise challenge. */
 export function WeeklyChallengeCard({ plan, onPress, tone = 'light' }: Props) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const dark = tone === 'dark';
   const titleColor = dark ? colors.textOnDark : colors.text;
@@ -33,15 +35,15 @@ export function WeeklyChallengeCard({ plan, onPress, tone = 'light' }: Props) {
           color={mutedColor}
           style={{ letterSpacing: 0.6 }}
         >
-          WEEKLY CHALLENGE
+          {t('weekly.kicker')}
         </AppText>
         <AppText variant="bodyLarge" weight="bold" color={titleColor}>
-          {plan.title}
+          {localizedWeeklyTitle(plan.twist, t)}
         </AppText>
         <AppText variant="caption" color={mutedColor}>
           {plan.completed
-            ? 'Completed · a new mix lands next week'
-            : `${plan.blurb} · 3 exercises`}
+            ? t('weekly.completed')
+            : t('weekly.blurbMeta', { blurb: localizedWeeklyBlurb(plan.twist, t) })}
         </AppText>
       </View>
 
@@ -66,7 +68,7 @@ export function WeeklyChallengeCard({ plan, onPress, tone = 'light' }: Props) {
                 color={dark ? colors.textOnDark : colors.primary}
               />
               <AppText variant="caption" weight="semiBold" color={mutedColor} center>
-                {game.shortTitle}
+                {localizedGameShort(id, t)}
               </AppText>
             </View>
           );
@@ -74,12 +76,12 @@ export function WeeklyChallengeCard({ plan, onPress, tone = 'light' }: Props) {
       </View>
 
       <AppText variant="caption" color={mutedColor}>
-        {weeklyTwistLabel(plan.twist)}
-        {plan.completed ? '' : ` · ${plan.daysLeft} day${plan.daysLeft === 1 ? '' : 's'} left`}
+        {localizedWeeklyTwist(plan.twist, t)}
+        {plan.completed ? '' : ` · ${t('weekly.daysLeft', { count: plan.daysLeft })}`}
       </AppText>
 
       <AppButton
-        title={plan.completed ? 'Play again' : 'Start weekly challenge'}
+        title={plan.completed ? t('weekly.playAgain') : t('weekly.start')}
         icon="trophy-outline"
         variant={dark ? 'primary' : 'secondary'}
         tone={dark && !plan.completed ? 'lime' : undefined}

@@ -1,13 +1,19 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppText } from '@/components/AppText';
 import { AppCard } from '@/components/AppCard';
-import { DIFFICULTY_PACE_LABEL } from '@/data/personalPlan';
 import { MINI_GAMES } from '@/data/miniGames';
 import { spacing } from '@/constants/spacing';
+import {
+  localizedGameShort,
+  localizedPlanFocusCopy,
+  localizedPlanPace,
+  localizedPlanTitle,
+} from '@/i18n/copy';
 import { useTheme } from '@/hooks/useTheme';
-import { PLAN_DISCLAIMER, type PersonalPlan } from '@/types/plan';
+import type { PersonalPlan } from '@/types/plan';
 
 type Props = {
   plan: PersonalPlan;
@@ -17,6 +23,7 @@ type Props = {
 
 /** Stored personal plan — entertainment / self-insight only. */
 export function PersonalPlanCard({ plan, compact }: Props) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   return (
     <AppCard style={{ gap: spacing.md }}>
@@ -35,18 +42,18 @@ export function PersonalPlanCard({ plan, compact }: Props) {
         </View>
         <View style={{ flex: 1, gap: 2 }}>
           <AppText variant="caption" weight="semiBold" color={colors.textMuted} style={{ letterSpacing: 0.8 }}>
-            YOUR 5-MIN PLAN
+            {t('plan.kicker')}
           </AppText>
           <AppText variant="bodyLarge" weight="bold">
-            {plan.title}
+            {localizedPlanTitle(plan.goal, t)}
           </AppText>
           <AppText variant="caption" color={colors.textSoft}>
-            {DIFFICULTY_PACE_LABEL[plan.difficultyMode]} · change anytime in Profile
+            {t('plan.paceChange', { pace: localizedPlanPace(plan.difficultyMode, t) })}
           </AppText>
         </View>
       </View>
       <AppText variant="body" color={colors.textSoft}>
-        {plan.focusCopy}
+        {localizedPlanFocusCopy(plan.goal, plan.weakSpots, t)}
       </AppText>
       {!compact && (
         <View style={{ flexDirection: 'row', gap: spacing.sm }}>
@@ -70,7 +77,7 @@ export function PersonalPlanCard({ plan, compact }: Props) {
                   color={colors.primary}
                 />
                 <AppText variant="caption" weight="semiBold" color={colors.textSoft} center>
-                  {game.shortTitle}
+                  {localizedGameShort(id, t)}
                 </AppText>
               </View>
             );
@@ -78,7 +85,7 @@ export function PersonalPlanCard({ plan, compact }: Props) {
         </View>
       )}
       <AppText variant="caption" color={colors.textMuted}>
-        {PLAN_DISCLAIMER}
+        {t('plan.disclaimer')}
       </AppText>
     </AppCard>
   );

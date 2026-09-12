@@ -1,11 +1,14 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppText } from '@/components/AppText';
 import { spacing } from '@/constants/spacing';
 import { MINI_GAMES } from '@/data/miniGames';
 import type { DailyPlan } from '@/game/engines/dailyTraining';
+import { localizedDailyTitle, localizedGameShort } from '@/i18n/copy';
 import { useTheme } from '@/hooks/useTheme';
+import { useGameStore } from '@/store/useGameStore';
 
 type Props = {
   plan: DailyPlan;
@@ -15,6 +18,8 @@ type Props = {
 
 /** Tomorrow’s session chips — used after daily completion (home + results). */
 export function TomorrowPreview({ plan, tone = 'light' }: Props) {
+  const { t } = useTranslation();
+  const personalPlan = useGameStore((s) => s.settings.personalPlan);
   const { colors } = useTheme();
   const dark = tone === 'dark';
   const titleColor = dark ? colors.textOnDark : colors.text;
@@ -25,13 +30,13 @@ export function TomorrowPreview({ plan, tone = 'light' }: Props) {
     <View style={{ gap: spacing.sm }}>
       <View style={{ gap: 2 }}>
         <AppText variant="caption" weight="semiBold" color={mutedColor} style={{ letterSpacing: 0.6 }}>
-          TOMORROW
+          {t('daily.tomorrow')}
         </AppText>
         <AppText variant="bodyLarge" weight="bold" color={titleColor}>
-          {plan.title}
+          {localizedDailyTitle(plan, personalPlan, t)}
         </AppText>
         <AppText variant="caption" color={mutedColor}>
-          3 exercises · about 5 minutes
+          {t('daily.tomorrowMeta')}
         </AppText>
       </View>
       <View style={{ flexDirection: 'row', gap: spacing.sm }}>
@@ -55,7 +60,7 @@ export function TomorrowPreview({ plan, tone = 'light' }: Props) {
                 color={dark ? colors.textOnDark : colors.primary}
               />
               <AppText variant="caption" weight="semiBold" color={mutedColor} center>
-                {game.shortTitle}
+                {localizedGameShort(id, t)}
               </AppText>
             </View>
           );

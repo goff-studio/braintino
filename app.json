@@ -134,7 +134,16 @@
       "expo-image",
       "expo-status-bar",
       "expo-web-browser",
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "expo-localization",
+        {
+          "supportedLocales": {
+            "ios": ["en", "es", "pt", "de", "fr"],
+            "android": ["en", "es", "pt-BR", "pt", "de", "fr"]
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

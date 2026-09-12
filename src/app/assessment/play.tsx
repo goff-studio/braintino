@@ -1,5 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GameHeader } from '@/components/GameHeader';
@@ -22,6 +23,7 @@ import { todayKey } from '@/utils/date';
  * Isolated from daily/practice XP, streaks, and adaptive level.
  */
 export default function AssessmentPlayScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { settings } = useTheme();
@@ -70,7 +72,7 @@ export default function AssessmentPlayScreen() {
     <ScreenBackground gradient={config.gradient}>
       <Reveal index={0} style={{ flex: 1, paddingBottom: insets.bottom + spacing.md }}>
         <GameHeader
-          title="Focus Snapshot"
+          title={t('assessment.name')}
           round={round}
           totalRounds={rounds}
           onPause={() => setPaused(true)}

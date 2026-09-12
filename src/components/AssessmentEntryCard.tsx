@@ -1,10 +1,10 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppButton } from '@/components/AppButton';
 import { AppCard } from '@/components/AppCard';
 import { AppText } from '@/components/AppText';
-import { gameConfig } from '@/constants/gameConfig';
 import { spacing } from '@/constants/spacing';
 import { useTheme } from '@/hooks/useTheme';
 
@@ -15,6 +15,7 @@ type Props = {
 
 /** Today / Practice entry point for the Focus Snapshot. */
 export function AssessmentEntryCard({ onPress, lastScore }: Props) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   return (
     <AppCard style={{ gap: spacing.md }}>
@@ -33,20 +34,20 @@ export function AssessmentEntryCard({ onPress, lastScore }: Props) {
         </View>
         <View style={{ flex: 1, gap: 2 }}>
           <AppText variant="bodyLarge" weight="bold">
-            Focus Snapshot
+            {t('assessment.name')}
           </AppText>
           <AppText variant="caption" color={colors.textSoft}>
-            A {gameConfig.assessment.durationLabel} attention check — just for fun.
+            {t('assessment.entryBody', { duration: t('assessment.duration') })}
           </AppText>
         </View>
       </View>
       {lastScore !== undefined && (
         <AppText variant="caption" color={colors.textMuted}>
-          Last snapshot: {lastScore}/100 · entertainment only
+          {t('assessment.lastSnapshotFun', { score: lastScore })}
         </AppText>
       )}
       <AppButton
-        title={lastScore !== undefined ? 'Retake Snapshot' : 'Take Focus Snapshot'}
+        title={lastScore !== undefined ? t('assessment.retake') : t('assessment.take')}
         icon="play"
         variant="secondary"
         size="medium"

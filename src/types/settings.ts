@@ -1,3 +1,4 @@
+import type { LocalePreference } from '@/i18n/locales';
 import type { PersonalPlan } from '@/types/plan';
 
 export type DifficultyMode = 'relaxed' | 'balanced' | 'challenging';
@@ -53,6 +54,11 @@ export type PlayerSettings = {
    * conversion data says otherwise. Paid UA is unused today.
    */
   trafficSource: 'organic' | 'paid';
+  /**
+   * In-app language. `system` follows the device locale (issue #8).
+   * Profile can override to EN / ES / PT / DE / FR.
+   */
+  localePreference: LocalePreference;
 };
 
 export const defaultSettings: PlayerSettings = {
@@ -73,4 +79,5 @@ export const defaultSettings: PlayerSettings = {
   d1ReturnLogged: false,
   personalPlan: null,
   trafficSource: 'organic',
+  localePreference: 'system',
 };

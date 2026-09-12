@@ -3,6 +3,7 @@ import { captureRef, type CaptureOptions } from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
 import { SHARE_CARD_HEIGHT, SHARE_CARD_WIDTH } from '@/components/AssessmentShareCard';
 import { shareMessage } from '@/game/engines/assessment';
+import i18n from '@/i18n';
 import type { ShareMethod } from '@/services/analytics/assessmentEvents';
 import type { AssessmentResult } from '@/types/assessment';
 
@@ -64,12 +65,13 @@ async function copyInviteToClipboard(message: string): Promise<boolean> {
 
 /** Desktop web often has no share sheet; copy + alert still delivers the invite. */
 function notifyInviteReady(message: string, copied: boolean): void {
-  const body = copied ? `${message}\n\nCopied — paste it to a friend.` : message;
+  const body = copied ? `${message}\n\n${i18n.t('invite.copiedSuffix')}` : message;
+  const title = i18n.t('invite.readyTitle');
   if (Platform.OS === 'web' && typeof globalThis.alert === 'function') {
-    globalThis.alert(`Invite ready\n\n${body}`);
+    globalThis.alert(`${title}\n\n${body}`);
     return;
   }
-  Alert.alert('Invite ready', body);
+  Alert.alert(title, body);
 }
 
 async function presentCopiedInvite(message: string): Promise<ShareOutcome> {
@@ -80,7 +82,7 @@ async function presentCopiedInvite(message: string): Promise<ShareOutcome> {
 
 async function shareTextFallback(
   message: string,
-  title = 'Braintino Focus Snapshot'
+  title = i18n.t('assessment.shareTitle')
 ): Promise<ShareOutcome> {
   if (Platform.OS === 'web') {
     const nav = globalThis.navigator as Navigator | undefined;
@@ -105,7 +107,7 @@ async function shareTextFallback(
 /** Prefill-only invite / streak text + store URLs (issue #7). */
 export async function shareTextInvite(
   message: string,
-  title = 'Braintino'
+  title = i18n.t('common.brand')
 ): Promise<ShareOutcome> {
   return shareTextFallback(message, title);
 }
@@ -133,7 +135,7 @@ export async function shareAssessmentCard(
       if (file && nav && typeof nav.share === 'function' && (!nav.canShare || nav.canShare({ files: [file] }))) {
         await nav.share({
           files: [file],
-          title: 'Braintino Focus Snapshot',
+          title: i18n.t('assessment.shareTitle'),
           text,
         });
         return { method: 'image', platform: Platform.OS, completed: true };
@@ -145,7 +147,7 @@ export async function shareAssessmentCard(
     if (typeof uri === 'string' && (await Sharing.isAvailableAsync())) {
       await Sharing.shareAsync(uri, {
         mimeType: 'image/png',
-        dialogTitle: 'Share your Focus Snapshot',
+        dialogTitle: i18n.t('assessment.shareDialog'),
         UTI: 'public.png',
       });
       return { method: 'image', platform: Platform.OS, completed: true };

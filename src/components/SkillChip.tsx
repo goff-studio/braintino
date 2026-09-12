@@ -1,8 +1,10 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { radius, spacing } from '@/constants/spacing';
 import { useTheme } from '@/hooks/useTheme';
+import { localizedSkillLabel } from '@/i18n/copy';
 import type { SkillType } from '@/types/game';
 import { AppText } from './AppText';
 
@@ -22,6 +24,7 @@ type Props = {
 };
 
 export function SkillChip({ skill, labelOverride }: Props) {
+  const { t } = useTranslation();
   const { colors, fs } = useTheme();
   const meta = SKILL_META[skill];
   return (
@@ -39,7 +42,7 @@ export function SkillChip({ skill, labelOverride }: Props) {
     >
       <Ionicons name={meta.icon} size={fs(14)} color={colors.primary} />
       <AppText variant="caption" weight="semiBold" color={colors.primary}>
-        {labelOverride ?? meta.label}
+        {labelOverride ?? localizedSkillLabel(skill, t)}
       </AppText>
     </View>
   );

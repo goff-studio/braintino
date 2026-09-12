@@ -1,7 +1,9 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getBadge } from '@/data/badges';
+import { localizedBadgeDescription, localizedBadgeTitle } from '@/i18n/copy';
 import { spacing } from '@/constants/spacing';
 import { useTheme } from '@/hooks/useTheme';
 import { AppText } from './AppText';
@@ -14,6 +16,7 @@ type Props = {
 
 /** Most recently earned milestones, newest first. */
 export function MilestoneList({ earnedBadges, limit = 4 }: Props) {
+  const { t } = useTranslation();
   const { colors, fs } = useTheme();
   const rows = Object.entries(earnedBadges)
     .map(([id, date]) => ({ badge: getBadge(id), date }))
@@ -24,7 +27,7 @@ export function MilestoneList({ earnedBadges, limit = 4 }: Props) {
   if (rows.length === 0) {
     return (
       <AppText variant="caption" color={colors.textMuted}>
-        Milestones appear here as you practice.
+        {t('progress.milestonesEmpty')}
       </AppText>
     );
   }
@@ -51,10 +54,10 @@ export function MilestoneList({ earnedBadges, limit = 4 }: Props) {
           </View>
           <View style={{ flex: 1 }}>
             <AppText variant="body" weight="semiBold">
-              {badge.title}
+              {localizedBadgeTitle(badge.id, badge.title, t)}
             </AppText>
             <AppText variant="caption" color={colors.textMuted}>
-              {badge.description}
+              {localizedBadgeDescription(badge.id, badge.description, t)}
             </AppText>
           </View>
         </View>

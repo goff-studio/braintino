@@ -1,5 +1,6 @@
 import { useRouter } from 'expo-router';
 import React, { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
@@ -11,13 +12,32 @@ import { WeeklyChallengeCard } from '@/components/WeeklyChallengeCard';
 import { gradients } from '@/constants/colors';
 import { spacing } from '@/constants/spacing';
 import { MINI_GAME_IDS, MINI_GAMES } from '@/data/miniGames';
-import { freePlayLockHint, isFreePlayGameUnlocked } from '@/game/engines/catalog';
+import {
+  isCatalogOpen,
+  isFreePlayGameUnlocked,
+  isFreePlayUnlocked,
+  type FreePlayUnlockArgs,
+} from '@/game/engines/catalog';
 import { getStartingLevel } from '@/game/engines/difficulty';
 import { getWeeklyChallengePlan } from '@/game/engines/weeklyChallenge';
 import { useTheme } from '@/hooks/useTheme';
 import { useGameStore } from '@/store/useGameStore';
 
+function localizedLockHint(
+  unlockLevel: number,
+  args: FreePlayUnlockArgs,
+  t: (key: string, opts?: Record<string, unknown>) => string
+): string | undefined {
+  if (isFreePlayGameUnlocked(unlockLevel, args)) return undefined;
+  if (!isFreePlayUnlocked(args)) return t('practice.lockOnboarding');
+  if (!isCatalogOpen(args.lastDailyCompletedDate) && unlockLevel > args.globalLevel) {
+    return t('practice.lockDaily');
+  }
+  return t('practice.lockLevel', { level: unlockLevel });
+}
+
 export default function PracticeScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
@@ -52,12 +72,11 @@ export default function PracticeScreen() {
         }}
       >
         <Reveal index={0}>
-          <AppText variant="heading">Practice</AppText>
+          <AppText variant="heading">{t('practice.title')}</AppText>
         </Reveal>
         <Reveal index={1}>
           <AppText variant="body" color={colors.textSoft} style={{ marginBottom: spacing.sm }}>
-            Daily practice stays on Today. Here you can free-play unlocked exercises, or take this
-            week’s challenge. Difficulty still adapts to your accuracy.
+            {t('practice.intro')}
           </AppText>
         </Reveal>
         <Reveal index={2}>
@@ -81,12 +100,12 @@ export default function PracticeScreen() {
               color={colors.textMuted}
               style={{ letterSpacing: 0.6 }}
             >
-              FREE PLAY
+              {t('practice.freePlay')}
             </AppText>
             <AppText variant="caption" color={colors.textSoft}>
               {progress.lastDailyCompletedDate
-                ? 'All six exercises are open. Play any one at your own pace.'
-                : 'Unlocked exercises after onboarding. Finish today’s session to open the full catalog.'}
+                ? t('practice.catalogOpen')
+                : t('practice.catalogGated')}
             </AppText>
           </View>
         </Reveal>
@@ -102,7 +121,7 @@ export default function PracticeScreen() {
                 level={mg?.level ?? getStartingLevel(progress, settings.difficultyMode)}
                 bestAccuracy={mg?.bestAccuracy}
                 locked={locked}
-                lockHint={freePlayLockHint(game.unlockLevel, unlock)}
+                lockHint={localizedLockHint(game.unlockLevel, unlock, t)}
                 onPress={() => {
                   startPracticeSession(id, 'practice');
                   router.push(`/play/${id}`);

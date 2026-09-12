@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppButton } from '@/components/AppButton';
@@ -25,6 +26,7 @@ import { useGameStore } from '@/store/useGameStore';
  * until eligibility is confirmed, so ineligible players never see a flicker.
  */
 export function RateAppCard() {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const progress = useGameStore((s) => s.progress);
   const session = useGameStore((s) => s.session);
@@ -72,24 +74,20 @@ export function RateAppCard() {
       >
         <Ionicons name="heart" size={20} color={colors.primary} />
         <AppText variant="bodyLarge" weight="bold">
-          Enjoying Braintino?
+          {t('rating.title')}
         </AppText>
       </View>
       <AppText variant="body" color={colors.textSoft} center>
-        {askBody(decision)}
+        {askBody(decision, t)}
       </AppText>
-      <AppButton title="Sure, I’ll rate it" icon="star-outline" onPress={rate} />
-      <AppButton title="Maybe later" variant="ghost" onPress={later} />
+      <AppButton title={t('rating.accept')} icon="star-outline" onPress={rate} />
+      <AppButton title={t('rating.dismiss')} variant="ghost" onPress={later} />
     </AppCard>
   );
 }
 
-function askBody(decision: RatingAskEligible): string {
-  if (decision.reason === 'strong_session_1') {
-    return 'Nice first session. If Braintino felt good to you, a quick rating helps other curious minds find it.';
-  }
-  if (decision.reason === 'early_streak') {
-    return `A ${decision.streak}-day streak — that’s how sharper habits start. If Braintino is working for you, a quick rating helps other curious minds find it.`;
-  }
-  return 'If Braintino is working for you, a quick rating helps other curious minds find it.';
+function askBody(decision: RatingAskEligible, t: (key: string, opts?: Record<string, unknown>) => string): string {
+  if (decision.reason === 'strong_session_1') return t('rating.strongFirst');
+  if (decision.reason === 'early_streak') return t('rating.earlyStreak', { count: decision.streak });
+  return t('rating.later');
 }

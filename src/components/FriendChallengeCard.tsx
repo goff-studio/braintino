@@ -1,4 +1,5 @@
 import React, { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppButton } from '@/components/AppButton';
@@ -22,6 +23,7 @@ type Props = {
  * when a result is available; invite always sends prefilled text + store URLs.
  */
 export function FriendChallengeCard({ surface, streakDays, result }: Props) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const cardRef = useRef<View>(null);
   const [busy, setBusy] = useState(false);
@@ -42,10 +44,8 @@ export function FriendChallengeCard({ surface, streakDays, result }: Props) {
     }
   };
 
-  const title = streakDays ? `${streakDays}-day streak` : 'Challenge a friend';
-  const body = streakDays
-    ? 'Share your streak, or dare a friend to take a Focus Snapshot. Entertainment only — not a diagnosis.'
-    : 'Send a Focus Snapshot challenge with a store link. Entertainment only — not a diagnosis.';
+  const title = streakDays ? t('invite.streakTitle', { count: streakDays }) : t('invite.challengeTitle');
+  const body = streakDays ? t('invite.streakBody') : t('invite.challengeBody');
 
   return (
     <>
@@ -62,7 +62,7 @@ export function FriendChallengeCard({ surface, streakDays, result }: Props) {
         </AppText>
         {streakDays ? (
           <AppButton
-            title="Share your streak"
+            title={t('invite.shareStreak')}
             icon="share-outline"
             disabled={busy}
             onPress={() => {
@@ -71,7 +71,7 @@ export function FriendChallengeCard({ surface, streakDays, result }: Props) {
           />
         ) : null}
         <AppButton
-          title="Challenge a friend"
+          title={t('invite.challengeTitle')}
           icon="flash-outline"
           variant={streakDays ? 'secondary' : 'primary'}
           disabled={busy}

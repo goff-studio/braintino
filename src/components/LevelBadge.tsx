@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { radius, spacing } from '@/constants/spacing';
 import { useTheme } from '@/hooks/useTheme';
@@ -10,10 +11,11 @@ type Props = {
 };
 
 export function LevelBadge({ level, compact }: Props) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   return (
     <View
-      accessibilityLabel={`Level ${level}`}
+      accessibilityLabel={t('common.level', { level })}
       style={{
         backgroundColor: colors.chipBlue,
         borderRadius: radius.chip,
@@ -23,7 +25,7 @@ export function LevelBadge({ level, compact }: Props) {
       }}
     >
       <AppText variant="caption" weight="bold" color={colors.text}>
-        {compact ? `L${level}` : `Level ${level}`}
+        {compact ? t('common.levelCompact', { level }) : t('common.level', { level })}
       </AppText>
     </View>
   );

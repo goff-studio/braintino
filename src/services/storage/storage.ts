@@ -5,6 +5,7 @@ import type { AssessmentResult } from '@/types/assessment';
 import type { MiniGameResult } from '@/types/game';
 import type { PlayerProgress } from '@/types/progress';
 import { parsePersonalPlan } from '@/game/engines/personalPlan';
+import { parseLocalePreference } from '@/i18n/locales';
 import { defaultSettings, type DifficultyMode, type PlayerSettings } from '@/types/settings';
 import { todayKey } from '@/utils/date';
 import { clamp } from '@/utils/math';
@@ -134,6 +135,9 @@ export async function loadSettings(): Promise<PlayerSettings> {
       ...defaultSettings,
       ...rest,
       personalPlan: parsePersonalPlan(rawPlan),
+      localePreference: parseLocalePreference(
+        (rest as { localePreference?: unknown }).localePreference
+      ),
     } as PlayerSettings;
   }
   const v1 = await readJson(LEGACY_KEYS.settings);

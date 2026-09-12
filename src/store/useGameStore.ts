@@ -63,6 +63,7 @@ import {
   type PlayerSettings,
   type ReminderFrequency,
 } from '@/types/settings';
+import { applyAppLocale } from '@/i18n';
 import { daysAgoKey, todayKey, yesterdayKey } from '@/utils/date';
 
 const MAX_RECENT_RESULTS = 15;
@@ -176,6 +177,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       storage.saveSettings(nextSettings);
     }
     rememberTrafficSource(nextSettings.trafficSource);
+    applyAppLocale(nextSettings.localePreference);
 
     set({ progress, settings: nextSettings, adFree, lastAssessment, hydrated: true });
     // Reconcile the local reminder schedule with settings: refreshes the
@@ -187,7 +189,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         nextSettings.reminderHour,
         nextSettings.reminderMinute,
         nextSettings.reminderAnchor ?? today,
-        reminderContentFor(progress, today)
+        reminderContentFor(progress, today, nextSettings.personalPlan)
       ).then((active) => {
         if (!active) get().updateSettings({ reminderEnabled: false });
       });
@@ -230,6 +232,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
       setAnalyticsConsent(settings.analyticsEnabled);
       AppsFlyerService.applyConsent(settings.analyticsEnabled);
     }
+    if (settings.localePreference !== prev.localePreference) {
+      applyAppLocale(settings.localePreference);
+    }
     set({ settings });
     storage.saveSettings(settings);
   },
@@ -252,7 +257,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       hour,
       minute,
       anchor,
-      reminderContentFor(get().progress)
+      reminderContentFor(get().progress, todayKey(), get().settings.personalPlan)
     );
     get().updateSettings({
       reminderEnabled: true,
@@ -287,7 +292,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         hour,
         minute,
         anchor,
-        reminderContentFor(get().progress)
+        reminderContentFor(get().progress, todayKey(), get().settings.personalPlan)
       ).catch(() => {});
     }
   },
@@ -465,7 +470,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
             state.settings.reminderHour,
             state.settings.reminderMinute,
             state.settings.reminderAnchor ?? today,
-            reminderContentFor(progress, today)
+            reminderContentFor(progress, today, state.settings.personalPlan)
           ).catch(() => {});
         }
       }

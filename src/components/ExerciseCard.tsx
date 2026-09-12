@@ -1,8 +1,10 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { spacing } from '@/constants/spacing';
 import { useTheme } from '@/hooks/useTheme';
+import { localizedGameDescription, localizedGameTitle, localizedSkillLabel } from '@/i18n/copy';
 import type { MiniGameConfig } from '@/types/game';
 import { AppCard } from './AppCard';
 import { AppText } from './AppText';
@@ -21,15 +23,17 @@ type Props = {
 
 /** Practice-library row: icon tile, name, description, meta, chevron. */
 export function ExerciseCard({ config, level, bestAccuracy, locked, lockHint, onPress }: Props) {
+  const { t } = useTranslation();
   const { colors, fs } = useTheme();
+  const title = localizedGameTitle(config.id, t);
 
   return (
     <AppCard
       onPress={locked ? undefined : onPress}
       accessibilityLabel={
         locked
-          ? `${config.title}, ${lockHint ?? `unlocks at level ${config.unlockLevel}`}`
-          : config.title
+          ? `${title}, ${lockHint ?? t('practice.unlocksAtLevel', { level: config.unlockLevel })}`
+          : title
       }
     >
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
@@ -52,17 +56,17 @@ export function ExerciseCard({ config, level, bestAccuracy, locked, lockHint, on
 
         <View style={{ flex: 1, gap: spacing.xs }}>
           <AppText variant="bodyLarge" weight="bold">
-            {config.title}
+            {title}
           </AppText>
           <AppText variant="caption" color={colors.textSoft} numberOfLines={2}>
-            {config.description}
+            {localizedGameDescription(config.id, t)}
           </AppText>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexWrap: 'wrap' }}>
-            <SkillChip skill={config.skill} labelOverride={config.skillLabel} />
+            <SkillChip skill={config.skill} labelOverride={localizedSkillLabel(config.skill, t)} />
             {!locked && <LevelBadge level={level} compact />}
             {!locked && bestAccuracy !== undefined && bestAccuracy > 0 && (
               <AppText variant="caption" color={colors.textMuted}>
-                Best {Math.round(bestAccuracy * 100)}%
+                {t('practice.bestAccuracy', { percent: Math.round(bestAccuracy * 100) })}
               </AppText>
             )}
           </View>
@@ -71,7 +75,7 @@ export function ExerciseCard({ config, level, bestAccuracy, locked, lockHint, on
         {locked ? (
           <View style={{ alignItems: 'flex-end', maxWidth: 88 }}>
             <AppText variant="caption" weight="bold" color={colors.textMuted} style={{ textAlign: 'right' }}>
-              {lockHint ?? `Level ${config.unlockLevel} to unlock`}
+              {lockHint ?? t('practice.lockLevel', { level: config.unlockLevel })}
             </AppText>
           </View>
         ) : (
