@@ -7,13 +7,14 @@ import {
   useFonts,
 } from '@expo-google-fonts/inter';
 import { Stack, usePathname } from 'expo-router';
+import { getLocales } from 'expo-localization';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect } from 'react';
 import { AppState } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useTranslation } from 'react-i18next';
-import { applyAppLocale } from '@/i18n';
+import { applyAppLocale, setDeviceLanguageReader } from '@/i18n';
 import { initAnalytics, trackScreen } from '@/services/analytics/analytics';
 import { AppsFlyerService } from '@/services/attribution/AppsFlyerService';
 import { initAudio } from '@/services/audio/audio';
@@ -21,6 +22,14 @@ import { AdService } from '@/services/monetization/AdService';
 import { PurchaseService } from '@/services/monetization/PurchaseService';
 import { initNotifications } from '@/services/notifications/notifications';
 import { useGameStore } from '@/store/useGameStore';
+
+setDeviceLanguageReader(() => {
+  try {
+    return getLocales()[0]?.languageCode ?? 'en';
+  } catch {
+    return 'en';
+  }
+});
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 

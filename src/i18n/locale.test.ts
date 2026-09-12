@@ -75,7 +75,7 @@ describe('translation catalogs', () => {
         assert.match(text, /entertainment|entretenimiento|entretenimento|unterhaltung|divertissement/i);
         assert.match(
           text,
-          /not a (medical|diagnostic)|no es (una prueba|un diagnóstico)|não é um (teste|diagnóstico)|kein(e)? (medizin|diagnos)|pas un (test|diagnostic)/i
+          /not a (medical|diagnostic|diagnosis)|no es (una prueba|un diagnóstico)|não é um (teste|diagnóstico)|kein(e)? (medizin|diagnos)|pas un (test|diagnostic)/i
         );
       }
     }

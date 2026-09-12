@@ -1,4 +1,4 @@
-import { getLocales } from 'expo-localization';
+/* eslint-disable import/no-named-as-default-member -- i18next default instance */
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import {
@@ -17,9 +17,19 @@ import { pt } from '@/i18n/resources/pt';
 export { APP_LOCALES, parseLocalePreference, resolveAppLocale } from '@/i18n/locales';
 export type { AppLocale, LocalePreference } from '@/i18n/locales';
 
+/**
+ * Device language is injected from app code (`expo-localization`) so Node
+ * unit tests never load react-native through that package.
+ */
+let readDeviceLanguage: () => string = () => 'en';
+
+export function setDeviceLanguageReader(reader: () => string): void {
+  readDeviceLanguage = reader;
+}
+
 function deviceLanguageCode(): string {
   try {
-    return getLocales()[0]?.languageCode ?? 'en';
+    return readDeviceLanguage() || 'en';
   } catch {
     return 'en';
   }

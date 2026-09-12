@@ -518,4 +518,10 @@ export const en = {
   },
 } as const;
 
-export type TranslationShape = typeof en;
+type DeepStringify<T> = T extends string
+  ? string
+  : T extends object
+    ? { [K in keyof T]: DeepStringify<T[K]> }
+    : T;
+
+export type TranslationShape = DeepStringify<typeof en>;
