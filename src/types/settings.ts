@@ -1,3 +1,5 @@
+import type { PersonalPlan } from '@/types/plan';
+
 export type DifficultyMode = 'relaxed' | 'balanced' | 'challenging';
 
 export type ReminderFrequency = 'daily' | 'everyOtherDay' | 'weekdays';
@@ -41,6 +43,11 @@ export type PlayerSettings = {
   firstOpenDate: string | null;
   /** Whether d1_return has already been logged for this install. */
   d1ReturnLogged: boolean;
+  /**
+   * Clever-lite personal plan from onboarding (issue #5). Null for installs
+   * that skipped the new questions. Used for Today copy and difficulty seeding.
+   */
+  personalPlan: PersonalPlan | null;
 };
 
 export const defaultSettings: PlayerSettings = {
@@ -59,4 +66,5 @@ export const defaultSettings: PlayerSettings = {
   reminderAnchor: null,
   firstOpenDate: null,
   d1ReturnLogged: false,
+  personalPlan: null,
 };

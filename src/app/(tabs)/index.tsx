@@ -7,6 +7,7 @@ import { AppButton } from '@/components/AppButton';
 import { AppCard } from '@/components/AppCard';
 import { AppText } from '@/components/AppText';
 import { AssessmentEntryCard } from '@/components/AssessmentEntryCard';
+import { PersonalPlanCard } from '@/components/PersonalPlanCard';
 import { Reveal } from '@/components/Reveal';
 import { ScreenBackground } from '@/components/ScreenBackground';
 import { StatCard } from '@/components/StatCard';
@@ -29,14 +30,18 @@ export default function TodayScreen() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const progress = useGameStore((s) => s.progress);
+  const personalPlan = useGameStore((s) => s.settings.personalPlan);
   const startDailySession = useGameStore((s) => s.startDailySession);
   const lastAssessment = useGameStore((s) => s.lastAssessment);
 
   const today = todayKey();
-  const plan = useMemo(() => getTodayDailyPlan(today, progress), [today, progress]);
+  const plan = useMemo(
+    () => getTodayDailyPlan(today, progress, personalPlan),
+    [today, progress, personalPlan]
+  );
   const tomorrowPlan = useMemo(
-    () => getTodayDailyPlan(tomorrowKey(), progress),
-    [progress]
+    () => getTodayDailyPlan(tomorrowKey(), progress, personalPlan),
+    [progress, personalPlan]
   );
   const dailyDone = progress.lastDailyCompletedDate === today;
 
@@ -80,8 +85,14 @@ export default function TodayScreen() {
           </View>
         </Reveal>
 
+        {personalPlan && (
+          <Reveal index={1}>
+            <PersonalPlanCard plan={personalPlan} compact />
+          </Reveal>
+        )}
+
         {/* Today's session — hero card */}
-        <Reveal index={1}>
+        <Reveal index={personalPlan ? 2 : 1}>
         <AppCard hero style={{ gap: spacing.lg }}>
           <View style={{ gap: spacing.xs }}>
             <AppText variant="title" color={colors.textOnDark}>

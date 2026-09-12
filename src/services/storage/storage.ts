@@ -3,6 +3,7 @@ import { gameConfig } from '@/constants/gameConfig';
 import type { AssessmentResult } from '@/types/assessment';
 import type { MiniGameResult } from '@/types/game';
 import type { PlayerProgress } from '@/types/progress';
+import { parsePersonalPlan } from '@/game/engines/personalPlan';
 import { defaultSettings, type DifficultyMode, type PlayerSettings } from '@/types/settings';
 import { todayKey } from '@/utils/date';
 import { clamp } from '@/utils/math';
@@ -69,6 +70,7 @@ function migrateSettingsV1toV2(v1: Record<string, unknown>): PlayerSettings {
     onboardingDone: v1.onboardingDone === true,
     analyticsEnabled: v1.analyticsEnabled !== false,
     difficultyMode,
+    personalPlan: null,
   };
 }
 
@@ -125,7 +127,12 @@ function migrateProgressV1toV2(
 export async function loadSettings(): Promise<PlayerSettings> {
   const v2 = await readJson(KEYS.settings);
   if (v2 && typeof v2.difficultyMode === 'string') {
-    return { ...defaultSettings, ...v2 } as PlayerSettings;
+    const { personalPlan: rawPlan, ...rest } = v2;
+    return {
+      ...defaultSettings,
+      ...rest,
+      personalPlan: parsePersonalPlan(rawPlan),
+    } as PlayerSettings;
   }
   const v1 = await readJson(LEGACY_KEYS.settings);
   if (v1) {

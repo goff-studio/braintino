@@ -303,7 +303,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   startDailySession: () => {
     const today = todayKey();
-    const plan = getTodayDailyPlan(today, get().progress);
+    const { progress, settings } = get();
+    const plan = getTodayDailyPlan(today, progress, settings.personalPlan);
     const session = createDailySession(plan.games, today);
     set({ session, lastResult: null });
     return session;
@@ -388,7 +389,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
           progress.lastDailyCompletedDate === yesterdayKey() ? progress.streak + 1 : 1;
         progress.lastDailyCompletedDate = today;
         progress.dailyHistory = [...progress.dailyHistory, today].slice(-60);
-        const plan = getTodayDailyPlan(today, progress);
+        const plan = getTodayDailyPlan(today, progress, state.settings.personalPlan);
         trackDailyCompleted({
           streak: progress.streak,
           totalSessions: progress.totalSessions,
