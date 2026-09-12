@@ -1,4 +1,4 @@
-import type { MiniGameId, MiniGameResult, SessionState } from '@/types/game';
+import type { MiniGameId, MiniGameResult, SessionState, WeeklyTwistId } from '@/types/game';
 
 /**
  * Central session flow helpers.
@@ -15,6 +15,15 @@ export function createDailySession(plan: MiniGameId[], dateKey: string): Session
 
 export function createPracticeSession(gameId: MiniGameId, dateKey: string): SessionState {
   return { mode: 'practice', plan: [gameId], index: 0, results: [], dateKey };
+}
+
+export function createWeeklySession(
+  plan: MiniGameId[],
+  weekKey: string,
+  twist: WeeklyTwistId,
+  dateKey: string
+): SessionState {
+  return { mode: 'weekly', plan, index: 0, results: [], dateKey, weekKey, twist };
 }
 
 export function currentGame(session: SessionState): MiniGameId | undefined {

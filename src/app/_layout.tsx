@@ -77,6 +77,7 @@ export default function RootLayout() {
         <Stack.Screen name="onboarding" />
         <Stack.Screen name="calibration" options={{ gestureEnabled: false }} />
         <Stack.Screen name="daily" />
+        <Stack.Screen name="weekly" />
         <Stack.Screen name="play/[gameId]" options={{ gestureEnabled: false }} />
         <Stack.Screen name="results" options={{ gestureEnabled: false }} />
         <Stack.Screen name="assessment" />

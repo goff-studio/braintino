@@ -53,9 +53,12 @@ export default function ResultsScreen() {
   const startPracticeSession = useGameStore((s) => s.startPracticeSession);
 
   const isDaily = session?.mode === 'daily';
+  const isWeekly = session?.mode === 'weekly';
+  const isPractice = session?.mode === 'practice';
   const sessionDone = session ? isSessionComplete(session) : true;
   const nextGameId = session && !sessionDone ? session.plan[session.index + 1] : null;
   const dailyComplete = isDaily && sessionDone;
+  const weeklyComplete = isWeekly && sessionDone;
   const totals = useMemo(() => (session ? sessionTotals(session) : null), [session]);
   const dailyFact = useMemo(
     () => (dailyComplete && session ? getDailyFact(session.dateKey) : null),
@@ -106,6 +109,7 @@ export default function ResultsScreen() {
     // caps). Resolves immediately when skipped, so navigation is never blocked.
     if (sessionDone && session) {
       await AdService.maybeShowInterstitialAfterSession({
+        // Weekly reuses the practice slot so it does not count as a second daily.
         placement: session.mode === 'daily' ? 'after_daily_session' : 'after_practice_session',
         totalSessions: progress.totalSessions,
         dateKey: session.dateKey,
@@ -128,7 +132,7 @@ export default function ResultsScreen() {
       >
         <Reveal index={0} style={{ alignItems: 'center', gap: spacing.sm }}>
           <AppText variant="heading" center>
-            {dailyComplete ? 'Session Complete' : 'Exercise Complete'}
+            {dailyComplete ? 'Session Complete' : weeklyComplete ? 'Challenge Complete' : 'Exercise Complete'}
           </AppText>
           <AppText variant="bodyLarge" color={colors.textSoft} center>
             {createFriendlyFeedback(result)}
@@ -258,6 +262,32 @@ export default function ResultsScreen() {
             </Reveal>
           )}
 
+          {weeklyComplete && totals && (
+            <Reveal index={3}>
+            <AppCard style={{ gap: spacing.md }}>
+              <View style={{ gap: spacing.sm, alignItems: 'center' }}>
+                <AppText variant="caption" weight="semiBold" color={colors.textMuted} style={{ letterSpacing: 0.6 }}>
+                  WEEKLY CHALLENGE
+                </AppText>
+                <AppText variant="bodyLarge" weight="bold">
+                  Challenge complete
+                </AppText>
+                <View style={{ flexDirection: 'row', gap: spacing.sm, flexWrap: 'wrap', justifyContent: 'center' }}>
+                  <StatPill icon="checkmark-done-outline" value={`${session!.results.length} exercises`} />
+                  <StatPill icon="flash-outline" value={`+${totals.xp} XP`} />
+                  <StatPill
+                    icon="trophy-outline"
+                    value={`${Math.round(totals.avgAccuracy * 100)}% accuracy`}
+                  />
+                </View>
+                <AppText variant="body" color={colors.textSoft} center>
+                  Same practice score as always — a new mix lands next week.
+                </AppText>
+              </View>
+            </AppCard>
+            </Reveal>
+          )}
+
           {dailyComplete && (
             <Reveal index={4}>
               <RateAppCard />
@@ -285,14 +315,25 @@ export default function ResultsScreen() {
               </>
             ) : (
               <>
-                {!isDaily && (
+                {isPractice && (
                   <AppButton
                     title="Repeat Exercise"
                     icon="refresh"
                     variant="secondary"
                     onPress={() => {
-                      startPracticeSession(result.miniGameId);
+                      startPracticeSession(result.miniGameId, 'results');
                       router.replace(`/play/${result.miniGameId}`);
+                    }}
+                  />
+                )}
+                {weeklyComplete && (
+                  <AppButton
+                    title="Free play an exercise"
+                    icon="grid-outline"
+                    variant="secondary"
+                    onPress={() => {
+                      abandonSession();
+                      router.replace('/practice');
                     }}
                   />
                 )}

@@ -15,7 +15,7 @@ import type { DifficultyMode } from '@/types/settings';
  *   traffic_source: string  'organic' | 'paid'
  *
  * first_session
- *   mode: string            'daily' | 'practice'
+ *   mode: string            'daily' | 'practice' | 'weekly'
  *   traffic_source: string
  *
  * Install is Firebase `first_open` + AppsFlyer install (not duplicated here).

@@ -14,17 +14,23 @@ type Props = {
   level: number;
   bestAccuracy?: number;
   locked?: boolean;
+  /** Overrides the default “Level N to unlock” copy. */
+  lockHint?: string;
   onPress?: () => void;
 };
 
 /** Practice-library row: icon tile, name, description, meta, chevron. */
-export function ExerciseCard({ config, level, bestAccuracy, locked, onPress }: Props) {
+export function ExerciseCard({ config, level, bestAccuracy, locked, lockHint, onPress }: Props) {
   const { colors, fs } = useTheme();
 
   return (
     <AppCard
       onPress={locked ? undefined : onPress}
-      accessibilityLabel={locked ? `${config.title}, unlocks at level ${config.unlockLevel}` : config.title}
+      accessibilityLabel={
+        locked
+          ? `${config.title}, ${lockHint ?? `unlocks at level ${config.unlockLevel}`}`
+          : config.title
+      }
     >
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
         <View
@@ -63,12 +69,9 @@ export function ExerciseCard({ config, level, bestAccuracy, locked, onPress }: P
         </View>
 
         {locked ? (
-          <View style={{ alignItems: 'flex-end' }}>
-            <AppText variant="caption" weight="bold" color={colors.textMuted}>
-              Level {config.unlockLevel}
-            </AppText>
-            <AppText variant="caption" color={colors.textMuted}>
-              to unlock
+          <View style={{ alignItems: 'flex-end', maxWidth: 88 }}>
+            <AppText variant="caption" weight="bold" color={colors.textMuted} style={{ textAlign: 'right' }}>
+              {lockHint ?? `Level ${config.unlockLevel} to unlock`}
             </AppText>
           </View>
         ) : (
