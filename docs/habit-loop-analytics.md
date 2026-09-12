@@ -1,6 +1,6 @@
 # Habit-loop analytics (issue #4)
 
-D1→D2 retention funnel. Logged to Firebase Analytics and AppsFlyer via `src/services/analytics/habitEvents.ts`. No KPI dashboard.
+D1→D2 retention funnel. Logged to Firebase Analytics and AppsFlyer via `src/services/analytics/habitEvents.ts`. KPI dashboard + weekly readout: `docs/kpi-funnel.md`.
 
 Practice / entertainment only — payloads must not imply a medical or diagnostic result.
 

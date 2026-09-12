@@ -36,4 +36,4 @@ Cold apps with near-zero ratings barely surface in search. Track toward **50+ re
 2. `rating_ask_accepted` — leading indicator (player opened the native prompt)
 3. Store Connect / Play Console rating count — lagging (OS throttles the native sheet)
 
-No in-app KPI dashboard. Filter accepted events by `eligibility` if conversion looks weak on day 1 vs streak.
+KPI dashboard (ratings count + funnel): `docs/kpi-funnel.md`. Filter accepted events by `eligibility` if conversion looks weak on day 1 vs streak.
