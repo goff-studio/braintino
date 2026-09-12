@@ -1,20 +1,40 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as StoreReview from 'expo-store-review';
-import type { PlayerProgress } from '@/types/progress';
+import {
+  evaluateRatingEligibility,
+  type RatingAskContext,
+  type RatingAskDecision,
+} from '@/services/review/eligibility';
+
+export {
+  RATING_GROWTH_MILESTONE,
+  evaluateRatingEligibility,
+  sessionFeltFrustrated,
+} from '@/services/review/eligibility';
+export type {
+  RatingAskContext,
+  RatingAskDecision,
+  RatingAskEligible,
+  RatingAskReason,
+  RatingAskSkipReason,
+} from '@/services/review/eligibility';
 
 /**
- * One-time store-rating ask, shown on the results screen once the player has
- * completed the daily session on a second distinct day — an engagement high
- * point rather than an interruption (Apple/Google both throttle the native
- * prompt, iOS to ~3 shows/year, so the moment matters). The UI is a soft-ask
- * card: the native prompt only appears for players who said yes, and either
- * answer means we never ask again.
+ * One-time store-rating ask on the results screen.
+ *
+ * When-and-why lives in `eligibility.ts` (issue #1). This module only
+ * persists the one-shot answer and talks to `expo-store-review`.
+ * Apple/Google throttle the native prompt (iOS ~3 shows/year), so we
+ * only open it after the player said yes on the soft-ask card.
  */
 
 const RATING_ASK_KEY = 'braintino.ratingAsk.v1';
 
-/** Distinct days with a completed daily session before we ask. */
-const MIN_DAILY_DAYS = 2;
+export type RatingAskGateReason = RatingAskDecision['reason'] | 'already_handled' | 'unavailable';
+
+export type RatingAskGate =
+  | Extract<RatingAskDecision, { ask: true }>
+  | { ask: false; reason: RatingAskGateReason };
 
 let handledCache: boolean | null = null;
 
@@ -33,16 +53,20 @@ function markHandled(outcome: 'accepted' | 'dismissed'): void {
   AsyncStorage.setItem(RATING_ASK_KEY, outcome).catch(() => {});
 }
 
-/** Whether the rating-ask card should appear on the results screen. */
-export async function shouldAskForRating(progress: PlayerProgress): Promise<boolean> {
-  if (progress.dailyHistory.length < MIN_DAILY_DAYS) return false;
-  if (await alreadyHandled()) return false;
+/** Whether the rating-ask card should appear, plus the eligibility reason. */
+export async function shouldAskForRating(ctx: RatingAskContext): Promise<RatingAskGate> {
+  const eligibility = evaluateRatingEligibility(ctx);
+  if (!eligibility.ask) return eligibility;
+  if (await alreadyHandled()) return { ask: false, reason: 'already_handled' };
   try {
     // False on web and wherever the native review flow can't run.
-    return await StoreReview.isAvailableAsync();
+    if (!(await StoreReview.isAvailableAsync())) {
+      return { ask: false, reason: 'unavailable' };
+    }
   } catch {
-    return false;
+    return { ask: false, reason: 'unavailable' };
   }
+  return eligibility;
 }
 
 /** Player said yes: open the native in-app review prompt. */

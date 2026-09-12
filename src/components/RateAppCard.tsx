@@ -6,26 +6,37 @@ import { AppCard } from '@/components/AppCard';
 import { AppText } from '@/components/AppText';
 import { spacing } from '@/constants/spacing';
 import { useTheme } from '@/hooks/useTheme';
-import { trackEvent } from '@/services/analytics/analytics';
-import { dismissRatingAsk, requestStoreRating, shouldAskForRating } from '@/services/review/review';
+import {
+  trackRatingAskAccepted,
+  trackRatingAskDismissed,
+  trackRatingAskShown,
+} from '@/services/analytics/ratingEvents';
+import {
+  dismissRatingAsk,
+  requestStoreRating,
+  shouldAskForRating,
+  type RatingAskEligible,
+} from '@/services/review/review';
 import { useGameStore } from '@/store/useGameStore';
 
 /**
  * Friendly one-time rating ask on the results screen (see
- * src/services/review/review.ts for the when-and-why). Renders nothing until
- * eligibility is confirmed, so ineligible players never see a flicker.
+ * src/services/review/eligibility.ts for the when-and-why). Renders nothing
+ * until eligibility is confirmed, so ineligible players never see a flicker.
  */
 export function RateAppCard() {
   const { colors } = useTheme();
   const progress = useGameStore((s) => s.progress);
-  const [visible, setVisible] = useState(false);
+  const session = useGameStore((s) => s.session);
+  const lastAssessment = useGameStore((s) => s.lastAssessment);
+  const [decision, setDecision] = useState<RatingAskEligible | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    shouldAskForRating(progress).then((eligible) => {
-      if (cancelled || !eligible) return;
-      setVisible(true);
-      trackEvent('rating_ask_shown');
+    shouldAskForRating({ progress, session, lastAssessment }).then((gate) => {
+      if (cancelled || !gate.ask) return;
+      setDecision(gate);
+      trackRatingAskShown(gate);
     });
     return () => {
       cancelled = true;
@@ -35,17 +46,17 @@ export function RateAppCard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (!visible) return null;
+  if (!decision) return null;
 
   const rate = () => {
-    setVisible(false);
-    trackEvent('rating_ask_accepted');
+    setDecision(null);
+    trackRatingAskAccepted(decision);
     requestStoreRating();
   };
 
   const later = () => {
-    setVisible(false);
-    trackEvent('rating_ask_dismissed');
+    setDecision(null);
+    trackRatingAskDismissed(decision);
     dismissRatingAsk();
   };
 
@@ -65,11 +76,20 @@ export function RateAppCard() {
         </AppText>
       </View>
       <AppText variant="body" color={colors.textSoft} center>
-        Two days of training — that’s how sharper habits start. If Braintino is
-        working for you, a quick rating helps other curious minds find it.
+        {askBody(decision)}
       </AppText>
       <AppButton title="Sure, I’ll rate it" icon="star-outline" onPress={rate} />
       <AppButton title="Maybe later" variant="ghost" onPress={later} />
     </AppCard>
   );
+}
+
+function askBody(decision: RatingAskEligible): string {
+  if (decision.reason === 'strong_session_1') {
+    return 'Nice first session. If Braintino felt good to you, a quick rating helps other curious minds find it.';
+  }
+  if (decision.reason === 'early_streak') {
+    return `A ${decision.streak}-day streak — that’s how sharper habits start. If Braintino is working for you, a quick rating helps other curious minds find it.`;
+  }
+  return 'If Braintino is working for you, a quick rating helps other curious minds find it.';
 }
