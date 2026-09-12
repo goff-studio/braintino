@@ -136,14 +136,14 @@ Frames: `iPhone / Result` (node `1:2`), `Share Card / 1080` (node `1:39`)
 
 Export / shoot order (iOS + Android). First three captions are OCR-indexed on iOS — keep short and keyword-rich.
 
-1. **Result card** — present (`ios/1-result.png`, `android/1-result.png`). Figma 3x PNG from `iPhone / Result` node `1:2` (sample: score 78, band Clear focus, bars focus/speed/consistency, dual disclaimer). Caption: `Know your focus score`
-2. **Share card** — present (`ios/2-share-card.png`, `android/2-share-card.png`). Figma 3x PNG from `Share Card / 1080` node `1:39` (branded share crop). Caption: `Share your brain score`
-3. **5-min habit** — pending. Today / daily session ~5 min + streak (calm adult UI). Caption: `Five minutes a day`
-4. **Skill chart** — pending. Weekly balance across skills. Caption: `See what improved`
-5. **Calm adult practice** — pending. One exercise in progress, no cartoons. Caption: `Built for adults`
-6. **Adaptive difficulty** — pending. Relaxed / Balanced / Challenging. Caption: `Difficulty that fits you`
+1. **Result card** — present (`ios/1-result.png`, `android/1-result.png`). Figma Focus Snapshot Result (`iPhone / Result` node `1:2`; sample: score 78, band Clear focus, bars focus/speed/consistency, dual disclaimer). Caption: `Know your focus score`
+2. **Share card** — present (`ios/2-share-card.png`, `android/2-share-card.png`). Figma Focus Snapshot Share Card (`Share Card / 1080` node `1:39`; branded share crop). Caption: `Share your brain score`
+3. **5-min habit** — present (`ios/3-habit.png`, `android/3-habit.png`). Existing Today 5-min session art; refresh later if #4 tomorrow-preview / Focus Snapshot home CTAs should show. Caption: `Five minutes a day`
+4. **Skill chart** — present (`ios/4-skills.png`, `android/4-skills.png`). Progress / Skill Balance. Caption: `See what improved`
+5. **Calm adult practice** — present (`ios/5-exercise.png`, `android/5-exercise.png`). Processing Speed exercise in progress, no cartoons. Caption: `Built for adults`
+6. **Adaptive difficulty** — present (`ios/6-difficulty.png`, `android/6-difficulty.png`). Figma Profile difficulty frame matching in-app labels (Relaxed / Balanced / Challenging); replace with live sim when a development build is available. Caption: `Difficulty that fits you`
 
-Do not use generic puzzle collage frames as hero shots. Prefer result + share + habit. Legacy `1-today.png` / `2-practice.png` / etc. remain until shots 3–6 land.
+Do not use generic puzzle collage frames as hero shots. Prefer result + share + habit. Legacy `1-today.png` / `2-practice.png` / `3-progress.png` / `4-exercise.png` stay in place as archive/reference.
 
 ## Disclaimer strings (match in-app)
 - `disclaimer_short`: Entertainment only · Not a diagnosis
