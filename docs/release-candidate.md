@@ -70,5 +70,5 @@ npx eas-cli submit --profile production --platform android
 3. Cut production EAS builds with the command above. Wait for both to finish. Do not submit yet.
 4. App Store Connect: version **1.6.0**, paste What’s New from [`whats-new.md`](whats-new.md). Listing copy + screenshots: `store-assets/`.
 5. Play Console: same What’s New (500-char EN block; locale drafts in the same file). Promote from the internal/draft track only after smoke.
-6. Privacy / Data safety: re-read [`store-privacy-questionnaire.md`](store-privacy-questionnaire.md) before submit. That note still describes a no-ads / no-Crashlytics app; this binary includes Google Mobile Ads, Firebase Analytics, Crashlytics, and AppsFlyer. Update ASC App Privacy + Play Data safety to match the live SDKs.
+6. Privacy / Data safety: follow [`store-privacy-questionnaire.md`](store-privacy-questionnaire.md) (ads, Firebase Analytics, Crashlytics, AppsFlyer, RevenueCat). Paste [`privacy-policy.md`](../privacy-policy.md) into the hosted Notion page, then tick ASC App Privacy + Play Advertising ID / Data safety before submit. Do not submit until those consoles match the live SDKs.
 7. When smoke is green and copy is pasted, run the two `eas-cli submit` commands (or upload the artifacts in the consoles). Then submit iOS for review and promote Play when ready.
