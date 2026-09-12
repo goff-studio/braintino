@@ -52,8 +52,8 @@ export default function OnboardingScreen() {
   const startDailySession = useGameStore((s) => s.startDailySession);
 
   const [step, setStep] = useState(0);
-  const [goal, setGoal] = useState<PlanGoal>('habit');
-  const [ageBand, setAgeBand] = useState<PlanAgeBand>('prefer_not');
+  const [goal, setGoal] = useState<PlanGoal | null>(null);
+  const [ageBand, setAgeBand] = useState<PlanAgeBand | null>(null);
   const [weakSpots, setWeakSpots] = useState<PlanWeakSpot[]>([]);
   const [biggerText, setBiggerText] = useState(false);
   const [reduceMotionPref, setReduceMotionPref] = useState(false);
@@ -64,7 +64,13 @@ export default function OnboardingScreen() {
   const [requestingReminder, setRequestingReminder] = useState(false);
 
   const plan = useMemo(
-    () => generatePersonalPlan({ goal, ageBand, weakSpots, timeMinutes: 5 }),
+    () =>
+      generatePersonalPlan({
+        goal: goal ?? 'habit',
+        ageBand: ageBand ?? 'prefer_not',
+        weakSpots,
+        timeMinutes: 5,
+      }),
     [goal, ageBand, weakSpots]
   );
 
@@ -235,7 +241,12 @@ export default function OnboardingScreen() {
               ))}
             </View>
             <Reveal index={7} exit>
-              <AppButton title="Continue" icon="arrow-forward" onPress={() => setStep(2)} />
+              <AppButton
+                title="Continue"
+                icon="arrow-forward"
+                disabled={!goal}
+                onPress={() => setStep(2)}
+              />
             </Reveal>
           </View>
         )}
@@ -266,7 +277,12 @@ export default function OnboardingScreen() {
               ))}
             </View>
             <Reveal index={7} exit>
-              <AppButton title="Continue" icon="arrow-forward" onPress={() => setStep(3)} />
+              <AppButton
+                title="Continue"
+                icon="arrow-forward"
+                disabled={!ageBand}
+                onPress={() => setStep(3)}
+              />
             </Reveal>
           </View>
         )}
